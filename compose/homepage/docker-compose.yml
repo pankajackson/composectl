@@ -20,6 +20,7 @@ services:
       PGID: 0
     networks:
       - secure-network
+    restart: always
 
 networks:
   secure-network:

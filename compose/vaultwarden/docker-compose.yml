@@ -1,0 +1,18 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: "https://vw.jackson.local"
+    volumes:
+      - /opt/storage/vaultwarden:/data/
+    ports:
+      - 8090:80
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

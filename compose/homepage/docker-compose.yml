@@ -1,0 +1,27 @@
+# Reference: https://gethomepage.dev/installation/docker/#using-environment-secrets
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - 3030:3000
+    volumes:
+      - ./bookmarks.yaml:/app/config/bookmarks.yaml
+      - ./services.yaml:/app/config/services.yaml
+      - ./settings.yaml:/app/config/settings.yaml
+      - ./widgets.yaml:/app/config/widgets.yaml
+      - ./docker.yaml:/app/config/docker.yaml
+      - ./kubernetes.yaml:/app/config/kubernetes.yaml
+      - /opt/storage/homepage/config:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations, see alternative methods
+    environment:
+      PUID: 0
+      PGID: 0
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

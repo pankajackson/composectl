@@ -1,0 +1,37 @@
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    # For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
+    ports:
+      - "8053:53/tcp"
+      - "8053:53/udp"
+      - "8067:67/udp" # Only required if you are using Pi-hole as your DHCP server
+      - "8091:80/tcp"
+    environment:
+      TZ: "Asia/Kolkata"
+      # WEBPASSWORD: 'set a secure password here or it will be random'
+      WEBPASSWORD: "123-qwe-,./"
+      PIHOLE_DNS_: 192.168.1.5;8.8.8.8;8.8.4.4
+    # Volumes store your data between container upgrades
+    volumes:
+      - "/opt/storage/pihole/etc-pihole:/etc/pihole"
+      - "/opt/storage/pihole/etc-dnsmasq.d:/etc/dnsmasq.d"
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    cap_add:
+      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped
+    networks:
+      - secure-network
+
+# Dashboard: http://localhost:8091/admin/
+# Update DNS settings of service systemd-resolved
+# vim /etc/systemd/resolved.conf
+# DNS=192.168.1.5#8053
+# Check with cmd: $ resolvectl status
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

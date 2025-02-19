@@ -1,0 +1,12 @@
+services:
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

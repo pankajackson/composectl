@@ -1,0 +1,106 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/services/
+# Icons
+# https://selfh.st/icons/
+# https://pictogrammers.com/library/mdi/
+# https://simpleicons.org/
+
+- Tools:
+        - Kube Services:
+                - Kube Board:
+                        icon: kubernetes.png
+                        href: https://kubeboard.jackson.local
+                        # siteMonitor: https://kubeboard.jackson.local
+                        # namespace: kubernetes-dashboard
+                        # app: kubernetes-dashboard
+                - Kibana:
+                        icon: kibana.png
+                        href: https://kb.jackson.local
+                        # siteMonitor: https://kb.jackson.local
+                - Elasticsearch:
+                        icon: elasticsearch.png
+                        href: https://es.jackson.local
+                        # siteMonitor: https://es.jackson.local
+                - AWS-LS:
+                        icon: aws.png
+                        href: http://aws.jackson.local
+                        # siteMonitor: http://aws.jackson.local
+                - Prometheus:
+                        icon: prometheus.png
+                        href: http://prometheus.jackson.local
+                        # siteMonitor: http://prometheus.jackson.local
+                - Grafana:
+                        icon: grafana.png
+                        href: http://grafana.jackson.local
+                        # siteMonitor: http://grafana.jackson.local
+        - Docker Services:
+                - Nginx Proxy Manager:
+                        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png
+                        href: http://localhost:81
+                        server: docker
+                        container: npm-app-1
+                - Stable Diffusion:
+                        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/pigallery2.png
+                        href: http://linuxastra.local:7860
+                        # siteMonitor: http://localhost:7860
+                        server: docker
+                        container: sd-forge-stable-diffusion-webui-forge-1
+                - Tabby:
+                        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/nexterm-light.png
+                        href: http://linuxastra.local:7861
+                        # siteMonitor: http://localhost:7861
+                        server: docker
+                        container: tabby-tabby-1
+                - Ollama:
+                        icon: ollama.png
+                        href: http://linuxastra.local:7862
+                        # siteMonitor: http://localhost:7862
+                        server: docker
+                        container: ollama-open-webui-open-webui-1
+                - IT-Tools:
+                        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/it-tools.png
+                        href: http://linuxastra.local:8092
+                        # siteMonitor: http://localhost:8092
+                        server: docker
+                        container: it-tools
+                - Jellyfin:
+                        icon: jellyfin.png
+                        href: http://linuxastra.local:8096
+                        # siteMonitor: http://localhost:8096
+                        server: docker
+                        container: jellyfin
+                - re-resume:
+                        icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/reactive-resume.png
+                        href: http://linuxastra.local:3000
+                        # siteMonitor: http://localhost:3000
+                        server: docker
+                        container: reactive-resume-app-1
+
+- Hosts:
+        - Kubernetes:
+                - Master:
+                        icon: kubernetes.png
+                        ping: kube.jackson.local
+                        statusStyle: "dot"
+                - Worker01:
+                        icon: kubernetes.png
+                        ping: kubeworker01.jackson.local
+                        statusStyle: "dot"
+                - Worker02:
+                        icon: kubernetes.png
+                        ping: kubeworker02.jackson.local
+                        statusStyle: "dot"
+                - Worker04:
+                        icon: kubernetes.png
+                        ping: kubeworker03.jackson.local
+                        statusStyle: "dot"
+                - Storage:
+                        icon: kubernetes.png
+                        ping: storage.jackson.local
+                        statusStyle: "dot"
+        - Local:
+                - Syncthing:
+                        icon: syncthing.png
+                        href: https://localhost:8384
+                        # siteMonitor: https://localhost:8384

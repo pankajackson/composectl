@@ -1,0 +1,41 @@
+services:
+  stable-diffusion-webui-forge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: --no-half --no-half-vae --precision full --api --cuda-malloc # --enable-insecure-extension-access
+    runtime: nvidia
+    restart: unless-stopped
+    ports:
+      - "7860:8080/tcp"
+    volumes:
+      - /opt/storage/sdiff-forge/inputs:/app/stable-diffusion-webui/inputs
+      - /opt/storage/sdiff-forge/textual_inversion_templates:/app/stable-diffusion-webui/textual_inversion_templates
+      - /opt/storage/sdiff-forge/embeddings:/app/stable-diffusion-webui/embeddings
+      - /opt/storage/sdiff-forge/extensions:/app/stable-diffusion-webui/extensions
+      - /opt/storage/sdiff-forge/models:/app/stable-diffusion-webui/models
+      - /opt/storage/sdiff-forge/localizations:/app/stable-diffusion-webui/localizations
+      - /opt/storage/sdiff-forge/outputs:/app/stable-diffusion-webui/outputs
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - "node.labels.iface != extern"
+      restart_policy:
+        condition: unless-stopped
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

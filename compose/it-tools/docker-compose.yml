@@ -1,0 +1,15 @@
+services:
+  it-tools:
+    ports:
+      - 8092:80
+    container_name: it-tools
+    stdin_open: true
+    tty: true
+    image: corentinth/it-tools
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

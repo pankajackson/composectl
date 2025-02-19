@@ -1,0 +1,51 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/settings/
+title: LXA
+description: LXA Homepage
+language: en
+base: http://localhost:3030
+target: _self # Possible options include _blank, _self, and _top
+favicon: https://archlinux.org/static/favicon.png
+background:
+  image: https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80
+  blur: sm # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
+  saturate: 100 # 0, 50, 100... see https://tailwindcss.com/docs/backdrop-saturate
+  brightness: 100 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
+  opacity: 100 # 0-100
+  cardBlur: xl
+headerStyle: boxedWidgets
+theme: dark
+color: indigo # slate, gray, zinc, neutral, stone, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, purple, fuchsia, pink, rose, red, white
+iconStyle: theme
+useEqualHeights: true
+
+layout:
+  Tools:
+    tab: Containers
+    style: row
+    columns: 2
+    header: false
+    icon: https://cdn-icons-png.flaticon.com/512/252/252035.png
+    Kube Services:
+    Docker Services:
+  Hosts:
+    tab: Hosts
+    style: row
+    header: false
+    columns: 2
+    Kube Cluster:
+
+quicklaunch:
+  searchDescriptions: true
+  hideInternetSearch: true
+  showSearchSuggestions: true
+  hideVisitURL: true
+  provider: google # google, duckduckgo, bing, baidu, brave or custom
+hideVersion: true
+
+logpath: /app/logs
+
+providers:
+  openweathermap: openweathermapapikey
+  weatherapi: weatherapiapikey

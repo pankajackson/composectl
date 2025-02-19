@@ -1,0 +1,43 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    ports:
+      - "7862:8080"
+    volumes:
+      - /opt/storage/open-webui:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URLS=http://ollama:11434
+    networks:
+      - secure-network
+
+  ollama:
+    image: ollama/ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - /opt/storage/open-webui/ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+    networks:
+      - secure-network
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 open-webui ollama
+    networks:
+      - secure-network
+    depends_on:
+      - open-webui
+      - ollama
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

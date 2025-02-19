@@ -1,0 +1,42 @@
+services:
+  app:
+    image: "jc21/nginx-proxy-manager:latest"
+    restart: unless-stopped
+    ports:
+      - "80:80" # Public HTTP Port
+      - "443:443" # Public HTTPS Port
+      - "81:81" # Admin Web Port
+      # Add any other Stream port you want to expose
+      # - '21:21' # FTP
+    environment:
+      # Postgres parameters:
+      DB_POSTGRES_HOST: "db"
+      DB_POSTGRES_PORT: "5432"
+      DB_POSTGRES_USER: "npm"
+      DB_POSTGRES_PASSWORD: "npmpass"
+      DB_POSTGRES_NAME: "npm"
+      # Uncomment this if IPv6 is not enabled on your host
+      # DISABLE_IPV6: 'true'
+    volumes:
+      - /opt/storage/npm/data:/data
+      - /opt/storage/npm/letsencrypt:/etc/letsencrypt
+    networks:
+      - secure-network
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: "npm"
+      POSTGRES_PASSWORD: "npmpass"
+      POSTGRES_DB: "npm"
+    volumes:
+      - /opt/storage/npm/postgres:/var/lib/postgresql/data
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

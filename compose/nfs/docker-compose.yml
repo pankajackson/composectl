@@ -1,0 +1,18 @@
+services:
+  nfs_server:
+    image: itsthenetwork/nfs-server-alpine:latest
+    container_name: nfs_server
+    privileged: true
+    volumes:
+      - /opt/storage:/data:rw
+    environment:
+      - SHARED_DIRECTORY=/data
+    ports:
+      - "2049:2049"
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

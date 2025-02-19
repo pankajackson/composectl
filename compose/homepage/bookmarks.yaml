@@ -1,0 +1,214 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/bookmarks
+- Entertainment:
+    - YouTube:
+        - abbr: YT
+          href: https://youtube.com/
+
+    - Prime Video:
+        - abbr: PV
+          href: https://www.primevideo.com/
+
+    - Dailymotion:
+        - abbr: DM
+          href: https://www.dailymotion.com/
+
+    - Hotstar:
+        - abbr: HS
+          href: https://www.hotstar.com/
+
+    - Netflix:
+        - abbr: NF
+          href: https://www.netflix.com/
+
+    - Saavn:
+        - abbr: SA
+          href: https://www.jiosaavn.com/
+
+    - Gaana:
+        - abbr: GA
+          href: https://gaana.com/
+
+    - Spotify:
+        - abbr: SP
+          href: https://www.spotify.com/
+
+    - Apple Music:
+        - abbr: AM
+          href: https://music.apple.com/
+
+    - SoundCloud:
+        - abbr: SC
+          href: https://soundcloud.com/
+
+    - Vimeo:
+        - abbr: VM
+          href: https://vimeo.com/
+
+    - Twitch:
+        - abbr: TW
+          href: https://www.twitch.tv/
+
+    - Hulu:
+        - abbr: HU
+          href: https://www.hulu.com/
+
+    - Disney+:
+        - abbr: DP
+          href: https://www.disneyplus.com/
+
+    - HBO Max:
+        - abbr: HBO
+          href: https://www.hbomax.com/
+
+    - Paramount+:
+        - abbr: PARA
+          href: https://www.paramountplus.com/
+
+    - Peacock:
+        - abbr: PEA
+          href: https://www.peacocktv.com/
+
+    - Crunchyroll:
+        - abbr: CR
+          href: https://www.crunchyroll.com/
+
+    - Funimation:
+        - abbr: FUN
+          href: https://www.funimation.com/
+
+- R & Development:
+    - Bitbucket:
+        - abbr: BB
+          href: https://bitbucket.org/
+
+    - Github:
+        - abbr: GH
+          href: https://github.com/
+
+    - GitLab:
+        - abbr: GL
+          href: https://gitlab.com/
+
+    - Jira:
+        - abbr: JIRA
+          href: https://www.atlassian.com/software/jira
+
+    - Arch Wiki:
+        - abbr: AW
+          href: https://wiki.archlinux.org/
+
+    - Pacman Packages:
+        - abbr: PP
+          href: https://archlinux.org/packages/
+
+    - AUR Packages:
+        - abbr: AUR
+          href: https://aur.archlinux.org/
+
+    - Qtile Docs:
+        - abbr: QD
+          href: https://docs.qtile.org/
+
+    - Qtile Extras Docs:
+        - abbr: QED
+          href: https://qtile-extras.readthedocs.io/
+
+    - Nerd Fonts Cheat Sheet:
+        - abbr: NFCS
+          href: https://www.nerdfonts.com/cheat-sheet
+
+    - Icons8:
+        - abbr: IC8
+          href: https://icons8.com/icons
+
+    - Stack Overflow:
+        - abbr: SO
+          href: https://stackoverflow.com/
+
+    - Reddit:
+        - abbr: RE
+          href: https://www.reddit.com/
+
+    - DevDocs:
+        - abbr: DD
+          href: https://devdocs.io/
+
+    - MDN Web Docs:
+        - abbr: MDN
+          href: https://developer.mozilla.org/
+
+    - W3Schools:
+        - abbr: W3S
+          href: https://www.w3schools.com/
+
+    - DockerHub Search:
+        - abbr: DHS
+          href: https://hub.docker.com/search
+
+    - Vagrant Cloud:
+        - abbr: VC
+          href: https://app.vagrantup.com/
+
+- Data Science:
+    - Hugging Face:
+        - abbr: HF
+          href: https://huggingface.co/
+
+    - Kaggle Datasets:
+        - abbr: KD
+          href: https://www.kaggle.com/datasets
+
+    - TensorFlow Hub:
+        - abbr: TFH
+          href: https://tfhub.dev/
+
+    - PyTorch Hub:
+        - abbr: PTH
+          href: https://pytorch.org/hub/
+
+    - Scikit-Learn Docs:
+        - abbr: SKL
+          href: https://scikit-learn.org/stable/
+
+- Social:
+    - Facebook:
+        - abbr: FB
+          href: https://www.facebook.com/
+
+    - Twitter:
+        - abbr: TW
+          href: https://twitter.com/
+
+    - Instagram:
+        - abbr: IG
+          href: https://www.instagram.com/
+
+    - LinkedIn:
+        - abbr: LI
+          href: https://www.linkedin.com/
+
+    - Reddit:
+        - abbr: RE
+          href: https://www.reddit.com/
+
+    - TikTok:
+        - abbr: TT
+          href: https://www.tiktok.com/
+
+    - Pinterest:
+        - abbr: PIN
+          href: https://www.pinterest.com/
+
+    - Snapchat:
+        - abbr: SC
+          href: https://www.snapchat.com/
+
+    - Discord:
+        - abbr: DC
+          href: https://discord.com/
+
+    - Mastodon:
+        - abbr: MAS
+          href: https://joinmastodon.org/

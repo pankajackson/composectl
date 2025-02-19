@@ -1,0 +1,14 @@
+$TTL    604800
+@       IN      SOA     lxa.local. root.lxa.local. (
+                        1           ; Serial
+                        604800      ; Refresh
+                        86400       ; Retry
+                        2419200     ; Expire
+                        604800      ; Negative Cache TTL
+                        )
+
+@       IN      NS      lxa.local.
+@       IN      A       10.0.0.1
+@       IN      A       192.168.1.1
+www     IN      CNAME   lxa.local.
+*       IN      CNAME   lxa.local.

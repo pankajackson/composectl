@@ -16,5 +16,4 @@ services:
       - /opt/storage/bind/cache:/var/cache/bind
       - /opt/storage/bind/records:/var/lib/bind
     restart: always
-    privileged: true
     network_mode: host

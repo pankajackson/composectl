@@ -1,0 +1,21 @@
+services:
+  squid:
+    container_name: squid
+    image: "docker.io/ubuntu/squid:latest"
+    environment:
+      - TZ=Asia/Kolkata
+    ports:
+      - 3128:3128
+    volumes:
+      - ./config/squid.conf:/etc/squid/squid.conf
+      - ./conf.d:/etc/squid/conf.d
+      - /opt/storage/squid/log:/var/log/squid
+      - /opt/storage/squid/cache:/var/spool/squid
+    restart: always
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

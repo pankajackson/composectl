@@ -10,6 +10,8 @@ services:
       POSTGRES_USER: semaphore
       POSTGRES_PASSWORD: semaphore
       POSTGRES_DB: semaphore
+    networks:
+      - secure-network
   semaphore:
     restart: unless-stopped
     ports:
@@ -37,5 +39,12 @@ services:
       SEMAPHORE_LDAP_DN_SEARCH: "dc=local,dc=example,dc=com"
       SEMAPHORE_LDAP_SEARCH_FILTER: "(\u0026(uid=%s)(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=local,dc=example,dc=com))"
       TZ: UTC
+    networks:
+      - secure-network
     depends_on:
       - postgres # for postgres, change to: postgres
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

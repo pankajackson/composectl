@@ -12,8 +12,10 @@ services:
     environment:
       TZ: "Asia/Kolkata"
       # WEBPASSWORD: 'set a secure password here or it will be random'
-      WEBPASSWORD: "123-qwe-,./"
-      PIHOLE_DNS_: 192.168.1.5;8.8.8.8;8.8.4.4
+      FTLCONF_webserver_api_password: "123-qwe-,./"
+      FTLCONF_dns_upstreams: 127.0.0.1#10053;8.8.8.8
+      # If using Docker's default bridge network setting, set the environment variable FTLCONF_dns_listeningMode to all.
+      FTLCONF_dns_listeningMode: "all"
     # Volumes store your data between container upgrades
     volumes:
       - "/opt/storage/pihole/etc-pihole:/etc/pihole"

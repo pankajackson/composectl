@@ -1,0 +1,29 @@
+$TTL    604800
+@       IN      SOA     jackson.com.    root.jackson.com. (
+                        3               ; Serial
+                        604800          ; Refresh
+                        86400           ; Retry
+                        2419200         ; Expire
+                        604800          ; Negative Cache TTL
+                        )
+
+@       IN      NS      jackson.com.
+@       IN      A       10.0.0.1
+@       IN      A       192.168.1.5
+www     IN      CNAME   jackson.com.
+ws05    IN      CNAME   jackson.com.
+ws06    IN      A       10.0.0.2
+ws06    IN      A       192.168.1.6
+kube    IN      A       10.0.0.10
+storage IN      A       10.0.0.254
+kubeworker01    IN      A       10.0.0.11
+kubeworker02    IN      A       10.0.0.12
+kubeworker03    IN      A       10.0.0.13
+kube-master-010001      IN      CNAME   kube.jackson.com.
+kube-worker01-110001    IN      CNAME   kubeworker01.jackson.com.
+kube-worker02-210001    IN      CNAME   kubeworker02.jackson.com.
+kube-worker03-310001    IN      CNAME   kubeworker03.jackson.com.
+ingress IN      A       10.0.0.200
+shipper IN      A       10.0.0.201
+ws26 IN      A       10.0.0.26
+*       IN      CNAME   ingress.jackson.com.

@@ -9,10 +9,8 @@ services:
       - 53:53/tcp
       - 53:53/udp
     volumes:
-      - ./config:/etc/bind
-      - ./zones/lxa.fr.zone:/etc/zones/lxa.fr.zone
-      - ./zones/lxa.re.zone:/etc/zones/lxa.re.zone
-      - /opt/storage/bind/zones:/etc/zones
+      - ./config/named.conf:/etc/bind/named.conf
+      - ./zones:/etc/bind/zones/managed
       - /opt/storage/bind/cache:/var/cache/bind
       - /opt/storage/bind/records:/var/lib/bind
     restart: always

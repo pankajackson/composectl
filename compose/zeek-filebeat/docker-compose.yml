@@ -33,13 +33,13 @@ services:
     container_name: filebeat
     image: docker.elastic.co/beats/filebeat:8.1.0
     volumes:
-      - ./filebeat_stream.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./filebeat_module.yml:/usr/share/filebeat/filebeat.yml:ro
       - ./zeek-logs/:/var/log/zeek:ro
     environment:
-      - "ES_HOST=https://es.jackson.com"
-      - "KB_HOST=https://kb.jackson.com"
+      - "ES_HOST=https://es.jackson.com:443"
+      - "KB_HOST=https://kb.jackson.com:443"
       - "ES_USER=elastic"
-      - "ES_PASS=39nu7xvl6xrt0Xm3H9d36g5e"
+      - "ES_PASS=mypass"
       - "SSL_CERT_VERIFICATION=none"
     network_mode: "host"
     depends_on:

@@ -1,0 +1,22 @@
+# docker run --rm \
+# --cap-add=NET_ADMIN \
+# -E setup.kibana.host=kibana:5601 \
+# -E output.elasticsearch.hosts=["elasticsearch:9200"] \
+# docker.elastic.co/beats/packetbeat:8.17.2
+services:
+  packetbeat:
+    container_name: packetbeat
+    image: docker.elastic.co/beats/packetbeat:8.1.0
+    environment:
+      - "ES_HOST=https://es.jackson.com:443"
+      - "KB_HOST=https://kb.jackson.com:443"
+      - "ES_USER=elastic"
+      - "ES_PASS=mypass"
+      - "SSL_CERT_VERIFICATION=none"
+    volumes:
+      - ./packetbeat.yml:/usr/share/packetbeat/packetbeat.yml:ro
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: always

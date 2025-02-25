@@ -5,10 +5,14 @@
       "properties": {
         "destination": {
           "properties": {
-            "geo": {
+            "geoip": {
               "properties": {
-                "location": {
-                  "type": "geo_point"
+                "geo": {
+                  "properties": {
+                    "location": {
+                      "type": "geo_point"
+                    }
+                  }
                 }
               }
             }
@@ -16,10 +20,14 @@
         },
         "source": {
           "properties": {
-            "geo": {
+            "geoip": {
               "properties": {
-                "location": {
-                  "type": "geo_point"
+                "geo": {
+                  "properties": {
+                    "location": {
+                      "type": "geo_point"
+                    }
+                  }
                 }
               }
             }

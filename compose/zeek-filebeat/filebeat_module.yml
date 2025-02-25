@@ -118,21 +118,21 @@ filebeat.modules:
       enabled: true
       var.paths: ["/var/log/zeek/*/x509.log"]
 
-output.elasticsearch:
-  hosts: ["${ES_HOST}"]
-  username: "${ES_USER}"
-  password: "${ES_PASS}"
-  ssl.verification_mode: "${SSL_CERT_VERIFICATION}"
+# output.elasticsearch:
+#   hosts: ["${ES_HOST}"]
+#   username: "${ES_USER}"
+#   password: "${ES_PASS}"
+#   ssl.verification_mode: "${SSL_CERT_VERIFICATION}"
 
-setup.kibana:
-  host: "${KB_HOST}"
-  username: "${ES_USER}"
-  password: "${ES_PASS}"
-  ssl.verification_mode: "${SSL_CERT_VERIFICATION}"
-setup.dashboards.enabled: true
+# setup.kibana:
+#   host: "${KB_HOST}"
+#   username: "${ES_USER}"
+#   password: "${ES_PASS}"
+#   ssl.verification_mode: "${SSL_CERT_VERIFICATION}"
+# setup.dashboards.enabled: true
 
-# output.logstash:
-#   hosts: ["shipper.jackson.com:5044"]
+output.logstash:
+  hosts: ["shipper.jackson.com:5044"]
 
 processors:
   - add_host_metadata: ~

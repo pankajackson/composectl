@@ -1,0 +1,14 @@
+services:
+  dhcp:
+    build: .
+    container_name: dhcp
+    restart: unless-stopped
+    network_mode: "host"
+    volumes:
+      - ./dhcpd.conf:/etc/dhcp/dhcpd.conf:ro
+      - /opt/storage/dhcp:/var/lib/dhcp
+    environment:
+      - INTERFACES=
+    cap_add:
+      - NET_ADMIN
+    privileged: true

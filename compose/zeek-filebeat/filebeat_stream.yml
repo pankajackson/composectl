@@ -1,0 +1,58 @@
+filebeat.inputs:
+  - type: filestream
+    id: zeek-gateway-logs
+    enabled: true
+    paths:
+      - /var/log/zeek/*/capture_loss.log
+      - /var/log/zeek/*/conn.log
+      - /var/log/zeek/*/capture_loss.log
+      - /var/log/zeek/*/dhcp.log
+      - /var/log/zeek/*/dnp3.log
+      - /var/log/zeek/*/dns.log
+      - /var/log/zeek/*/dpd.log
+      - /var/log/zeek/*/files.log
+      - /var/log/zeek/*/ftp.log
+      - /var/log/zeek/*/http.log
+      - /var/log/zeek/*/intel.log
+      - /var/log/zeek/*/irc.log
+      - /var/log/zeek/*/kerberos.log
+      - /var/log/zeek/*/modbus.log
+      - /var/log/zeek/*/mysql.log
+      - /var/log/zeek/*/notice.log
+      - /var/log/zeek/*/ntp.log
+      - /var/log/zeek/*/ntlm.log
+      - /var/log/zeek/*/ocsp.log
+      - /var/log/zeek/*/pe.log
+      - /var/log/zeek/*/radius.log
+      - /var/log/zeek/*/rdp.log
+      - /var/log/zeek/*/rfb.log
+      - /var/log/zeek/*/signature.log
+      - /var/log/zeek/*/sip.log
+      - /var/log/zeek/*/smb_cmd.log
+      - /var/log/zeek/*/smb_files.log
+      - /var/log/zeek/*/smb_mapping.log
+      - /var/log/zeek/*/smtp.log
+      - /var/log/zeek/*/snmp.log
+      - /var/log/zeek/*/socks.log
+      - /var/log/zeek/*/ssh.log
+      - /var/log/zeek/*/ssl.log
+      - /var/log/zeek/*/stats.log
+      - /var/log/zeek/*/syslog.log
+      - /var/log/zeek/*/traceroute.log
+      - /var/log/zeek/*/tunnel.log
+      - /var/log/zeek/*/weird.log
+      - /var/log/zeek/*/x509.log
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+output.logstash:
+  hosts: ["shipper.jackson.com:5044"]
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~

@@ -1,0 +1,39 @@
+{
+  "index_patterns": ["shipper-filebeat*"],
+  "template": {
+    "mappings": {
+      "properties": {
+        "destination": {
+          "properties": {
+            "geoip": {
+              "properties": {
+                "geo": {
+                  "properties": {
+                    "location": {
+                      "type": "geo_point"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "source": {
+          "properties": {
+            "geoip": {
+              "properties": {
+                "geo": {
+                  "properties": {
+                    "location": {
+                      "type": "geo_point"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

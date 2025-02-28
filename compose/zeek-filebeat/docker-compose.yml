@@ -1,0 +1,50 @@
+services:
+  zeek_eth0:
+    container_name: zeek_eth0
+    image: zeek/zeek:lts
+    environment:
+      - ZEEK_LOG_DIR=/usr/local/zeek/logs/current
+    working_dir: /usr/local/zeek/logs/current
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    entrypoint: ["zeek", "-i", "eth0", "LogAscii::use_json=T"]
+    volumes:
+      - /opt/storage/zeek/logs/eth0:/usr/local/zeek/logs/current
+    restart: always
+
+  zeek_wlan0:
+    container_name: zeek_wlan0
+    image: zeek/zeek:lts
+    environment:
+      - ZEEK_LOG_DIR=/usr/local/zeek/logs/current
+    working_dir: /usr/local/zeek/logs/current
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    entrypoint: ["zeek", "-i", "wlan0", "LogAscii::use_json=T"]
+    volumes:
+      - /opt/storage/zeek/logs/wlan0:/usr/local/zeek/logs/current
+    restart: always
+
+  filebeat:
+    container_name: filebeat
+    image: docker.elastic.co/beats/filebeat:8.1.0
+    volumes:
+      - ./filebeat_module.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /opt/storage/zeek/logs:/var/log/zeek:ro
+    environment:
+      - "ES_HOST=https://es.jackson.com:443"
+      - "KB_HOST=https://kb.jackson.com:443"
+      - "ES_USER=elastic"
+      - "ES_PASS=mypass"
+      - "SSL_CERT_VERIFICATION=none"
+    network_mode: "host"
+    depends_on:
+      zeek_eth0:
+        condition: service_started
+      zeek_wlan0:
+        condition: service_started
+    restart: always

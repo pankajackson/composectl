@@ -4,8 +4,6 @@ services:
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
-    ports:
-      - 3030:3000
     volumes:
       - ./bookmarks.yaml:/app/config/bookmarks.yaml
       - ./services.yaml:/app/config/services.yaml
@@ -20,6 +18,10 @@ services:
       PGID: 0
     networks:
       - secure-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage-http.rule=Host(`home.lxa.com`)"
+      - "traefik.http.routers.homepage-http.entrypoints=web"
     restart: always
 
 networks:

@@ -10,12 +10,22 @@ log:
 api:
   dashboard: true
   insecure: true
+  debug: false
 
 entryPoints:
   web:
     address: :80
   websecure:
     address: :443
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "pankajacskon@live.co.uk"
+      storage: "/letsencrypt/acme.json"
+      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+      httpChallenge:
+        entryPoint: web
 
 providers:
   docker:

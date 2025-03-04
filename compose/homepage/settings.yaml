@@ -4,7 +4,7 @@
 title: LXA
 description: LXA Homepage
 language: en
-base: http://home.lxa.com
+# base: http://home.lxa.com # Allow any url by commenting out the base url
 target: _self # Possible options include _blank, _self, and _top
 favicon: https://archlinux.org/static/favicon.png
 background:

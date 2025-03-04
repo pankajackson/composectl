@@ -19,13 +19,25 @@ services:
     networks:
       - secure-network
     labels:
+      # Local insecure mode
       - "traefik.enable=true"
       - "traefik.http.routers.homepage-http.rule=Host(`home.lxa.com`)"
       - "traefik.http.routers.homepage-http.entrypoints=web"
+
+      # HTTP Router for home.linuxastra.in (Redirect to HTTPS)
+      - "traefik.http.routers.homepage-http-redirect.rule=Host(`home.linuxastra.in`)"
+      - "traefik.http.routers.homepage-http-redirect.entrypoints=web"
+      - "traefik.http.routers.homepage-http-redirect.middlewares=https-redirect"
+
+      # HTTPS Router for home.linuxastra.in (No redirect, just serve traffic)
       - "traefik.http.routers.homepage-https.rule=Host(`home.linuxastra.in`)"
       - "traefik.http.routers.homepage-https.entrypoints=websecure"
       - "traefik.http.routers.homepage-https.tls=true"
       - "traefik.http.routers.homepage-https.tls.certresolver=letsencrypt"
+
+      # Middleware for redirecting HTTP to HTTPS
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
     restart: always
 
 networks:

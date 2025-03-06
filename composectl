@@ -13,9 +13,10 @@ import re
 class Action(str, Enum):
     LS = "ls"
     UP = "up -d"
-    DOWN = "down -v"
+    STOP = "stop"
     RESTART = "restart"
     LOGS = "logs"
+    DOWN = "down -v"
     STATUS = "status"
 
 
@@ -52,6 +53,34 @@ class ComposeCtl:
             return Network(name=network["name"], driver=network["driver"])
         return Network(name="compose_ctl_default", driver="bridge")
 
+    def create_network(self):
+        result = subprocess.run(
+            ["docker", "network", "ls", "--format", "{{.Name}}"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        existing_networks = result.stdout.splitlines()
+
+        if self.network.name not in existing_networks:
+            print(
+                f"Creating network '{self.network.name}' with driver '{self.network.driver}'"
+            )
+            subprocess.run(
+                [
+                    "docker",
+                    "network",
+                    "create",
+                    "--driver",
+                    self.network.driver,
+                    self.network.name,
+                ],
+                check=True,
+            )
+        else:
+            print(f"Network '{self.network.name}' already exists.")
+
     def load_services(self):
         svc = os.listdir(self.compose_dir)
         svc_object_list = [
@@ -60,6 +89,8 @@ class ComposeCtl:
         return svc_object_list
 
     def run(self, action: Action, service_name_list: list[str] | None = None):
+        if action in [Action.UP, Action]:
+            self.create_network()
         if not service_name_list:
             services = self.services
         else:
@@ -91,9 +122,7 @@ class ComposeCtl:
         for service in self.services:
             print(f"  - {service.name}")
 
-    def show_status(self, global_status=False):
-        """Show status of services. If global_status is True, lists all projects; otherwise, only those in compose directory."""
-
+    def get_status(self):
         # Run docker compose ls and capture output
         result = subprocess.run(
             ["docker", "compose", "ls"], check=True, capture_output=True, text=True
@@ -134,6 +163,11 @@ class ComposeCtl:
                 unmanaged_services.append(
                     (name, service["compose_file_path"], service["status"])
                 )
+        return managed_services, unmanaged_services
+
+    def show_status(self, global_status=False):
+        """Show status of services. If global_status is True, lists all projects; otherwise, only those in compose directory."""
+        managed_services, unmanaged_services = self.get_status()
 
         # Print managed services
         print("Service Status:")
@@ -151,7 +185,7 @@ def get_parser_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Manage Docker Compose services")
     parser.add_argument(
         "action",
-        choices=["up", "down", "restart", "status", "ls", "logs"],
+        choices=["up", "down", "restart", "status", "ls", "logs", "stop"],
         help="Action to perform",
     )
     parser.add_argument(
@@ -167,6 +201,7 @@ def main():
 
     action_map = {
         "up": cctl.run,
+        "stop": cctl.run,
         "down": cctl.run,
         "restart": cctl.run,
         "logs": cctl.run,
@@ -174,7 +209,7 @@ def main():
         "ls": cctl.list_services,
     }
     if args.action in action_map:
-        if args.action in ["up", "down", "restart", "logs"]:
+        if args.action in ["up", "down", "restart", "logs", "stop"]:
             action_map[args.action](Action[args.action.upper()], args.services)
         else:
             action_map[args.action]()

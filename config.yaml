@@ -6,6 +6,5 @@ services:
   enable:
     - pi-hole
     - traefik
-    - vaultwarden
   disable:
-    - watchtower
+    - vaultwarden

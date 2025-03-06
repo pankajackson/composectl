@@ -11,12 +11,12 @@ import re
 
 
 class Action(str, Enum):
-    LS = "ls"
     UP = "up -d"
     STOP = "stop"
     RESTART = "restart"
-    LOGS = "logs"
     DOWN = "down -v"
+    LS = "ls"
+    LOGS = "logs"
     STATUS = "status"
 
 
@@ -78,8 +78,8 @@ class ComposeCtl:
                 ],
                 check=True,
             )
-        else:
-            print(f"Network '{self.network.name}' already exists.")
+        # else:
+        #     print(f"Network '{self.network.name}' already exists.")
 
     def load_services(self):
         svc = os.listdir(self.compose_dir)
@@ -88,34 +88,63 @@ class ComposeCtl:
         ]
         return svc_object_list
 
+    def execute(self, service: Service, action: Action):
+        if service.path.exists():
+            print(
+                f"Running: docker compose -f {service.path}/docker-compose.yml {action.value}"
+            )
+            subprocess.run(
+                [
+                    "docker",
+                    "compose",
+                    "-f",
+                    f"{service.path}/docker-compose.yml",
+                ]
+                + action.value.split(" "),
+                check=True,
+                env={"CONTAINER_NETWORK": self.network.name},
+            )
+        else:
+            print(f"Service '{service.name}' not found in '{self.compose_dir}'")
+
     def run(self, action: Action, service_name_list: list[str] | None = None):
         if action in [Action.UP, Action]:
             self.create_network()
         if not service_name_list:
-            services = self.services
+            if action in [Action.UP, Action.RESTART, Action.LOGS]:
+                services = [
+                    svc
+                    for svc in self.services
+                    if svc.name in self.config.get("services", {}).get("enable", [])
+                ]
+            else:
+                services = self.services
         else:
             services = [
                 next(svc for svc in self.services if svc.name == svc_str)
                 for svc_str in service_name_list
             ]
         for service in services:
-            if service.path.exists():
-                print(
-                    f"Running: docker compose -f {service.path}/docker-compose.yml {action.value}"
-                )
-                subprocess.run(
-                    [
-                        "docker",
-                        "compose",
-                        "-f",
-                        f"{service.path}/docker-compose.yml",
-                    ]
-                    + action.value.split(" "),
-                    check=True,
-                    env={"CONTAINER_NETWORK": self.network.name},
-                )
-            else:
-                print(f"Service '{service.name}' not found in '{self.compose_dir}'")
+            self.execute(service=service, action=action)
+
+    def apply(self):
+        active_services = [
+            svc
+            for svc in self.services
+            if svc.name in self.config.get("services", {}).get("enable", [])
+        ]
+        inactive_services = [
+            svc
+            for svc in self.services
+            if svc.name in self.config.get("services", {}).get("disable", [])
+        ]
+        if inactive_services:
+            for svc in inactive_services:
+                self.execute(service=svc, action=Action.STOP)
+        if active_services:
+            self.create_network()
+            for svc in active_services:
+                self.execute(service=svc, action=Action.UP)
 
     def list_services(self):
         print("Available services:")
@@ -185,7 +214,7 @@ def get_parser_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Manage Docker Compose services")
     parser.add_argument(
         "action",
-        choices=["up", "down", "restart", "status", "ls", "logs", "stop"],
+        choices=["up", "down", "restart", "status", "ls", "logs", "stop", "apply"],
         help="Action to perform",
     )
     parser.add_argument(
@@ -205,6 +234,7 @@ def main():
         "down": cctl.run,
         "restart": cctl.run,
         "logs": cctl.run,
+        "apply": cctl.apply,
         "status": cctl.show_status,
         "ls": cctl.list_services,
     }

@@ -1,13 +1,20 @@
 services:
   it-tools:
-    ports:
-      - 8092:80
     container_name: it-tools
     stdin_open: true
     tty: true
     image: corentinth/it-tools
     networks:
       - secure-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ittools-http.rule=Host(`itt.lxa.com`)"
+      - "traefik.http.routers.ittools-http.entrypoints=web"
+      - "traefik.http.routers.ittools-https.rule=Host(`itt.linuxastra.in`)"
+      - "traefik.http.routers.ittools-https.entrypoints=websecure"
+      - "traefik.http.routers.ittools-https.tls=true"
+      - "traefik.http.routers.ittools-https.tls.certresolver=letsencrypt"
+    restart: always
 
 networks:
   secure-network:

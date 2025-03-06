@@ -1,5 +1,5 @@
 $TTL	604800
-@		IN		SOA		lxa.local. root.lxa.local. (
+@		IN		SOA		lxa.com. root.lxa.com. (
 						2			; Serial
 						604800		; Refresh
 						86400		; Retry
@@ -7,5 +7,5 @@ $TTL	604800
 						604800 		; Negative Cache TTL
 						)
 
-@		IN		NS		lxa.local.
-1.0.0	IN		PTR		lxa.local.
+@		IN		NS		lxa.com.
+2.0.0	IN		PTR		lxa.com.

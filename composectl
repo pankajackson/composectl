@@ -94,25 +94,33 @@ class ComposeCtl:
         return svc_object_list
 
     def execute(self, service: Service, action: Action):
-        if service.path.exists():
+        compose_file = service.path / "docker-compose.yml"
+        if not compose_file.exists():
+            print(
+                f"⚠️ Skipping '{service.name}': No docker-compose.yml found at {compose_file}"
+            )
+            return
 
-            cmd = [
-                "docker",
-                "compose",
-                "-f",
-                f"{service.path}/docker-compose.yml",
-            ] + action.value.split(" ")
-            if self.dry_run:
-                print(f"[DRY RUN] Would run: {" ".join(cmd)}")
-            else:
-                print(f"Running: {" ".join(cmd)}")
+        cmd = [
+            "docker",
+            "compose",
+            "-f",
+            f"{service.path}/docker-compose.yml",
+        ] + action.value.split(" ")
+        if self.dry_run:
+            print(f"[DRY RUN] Would run: {" ".join(cmd)}")
+        else:
+            print(f"Running: {" ".join(cmd)}")
+            env_vars = os.environ.copy()
+            env_vars["CONTAINER_NETWORK"] = self.network.name
+            try:
                 subprocess.run(
                     cmd,
                     check=True,
-                    env={"CONTAINER_NETWORK": self.network.name},
+                    env=env_vars,
                 )
-        else:
-            print(f"Service '{service.name}' not found in '{self.compose_dir}'")
+            except subprocess.CalledProcessError as e:
+                print(f"⚠️ Error running '{service.name}': {e}")
 
     def run(self, action: Action, service_name_list: list[str] | None = None):
         if action in [Action.UP, Action.RESTART]:
@@ -135,13 +143,16 @@ class ComposeCtl:
         active_services = [
             svc
             for svc in self.services
-            if svc.name in self.config.get("services", {}).get("enable", [])
+            if svc.name in self.config.get("services", {}).get("enable", []) or []
         ]
         inactive_services = [
             svc
             for svc in self.services
-            if svc.name in self.config.get("services", {}).get("disable", [])
+            if svc.name in self.config.get("services", {}).get("disable", []) or []
         ]
+        if not active_services and not inactive_services:
+            print("No services to manage.")
+            return
         if inactive_services:
             for svc in inactive_services:
                 self.execute(service=svc, action=Action.STOP)
@@ -157,15 +168,22 @@ class ComposeCtl:
 
     def get_status(self):
         # Run docker compose ls and capture output
-        result = subprocess.run(
-            ["docker", "compose", "ls"], check=True, capture_output=True, text=True
-        )
+        try:
+            result = subprocess.run(
+                ["docker", "compose", "ls", "-a"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"⚠️ Error fetching status: {e}")
+            return [], []
 
         running_services = {}
         lines = result.stdout.split("\n")
 
         for line in lines[1:]:  # Skip header
-            parts = re.split(r"\s{2,}", line.strip())  # Split on multiple spaces
+            parts = line.split(maxsplit=2)  # Split on multiple spaces
             if len(parts) >= 3:
                 project_name, status, compose_file_path = parts[:3]
 
@@ -201,19 +219,29 @@ class ComposeCtl:
     def show_status(self):
         """Show status of services. If global_status is True, lists all projects; otherwise, only those in compose directory."""
         managed_services, unmanaged_services = self.get_status()
+        if not managed_services:
+            print("No managed services found.")
+        else:
+            print("Service Status:")
+            print(
+                tabulate(
+                    managed_services,
+                    headers=["Name", "Path", "Status"],
+                    tablefmt="grid",
+                )
+            )
 
-        print("Service Status:")
-        print(
-            tabulate(
-                managed_services, headers=["Name", "Path", "Status"], tablefmt="grid"
+        if not unmanaged_services:
+            print("No unmanaged services found.")
+        else:
+            print("\nUnmanaged Service Status:")
+            print(
+                tabulate(
+                    unmanaged_services,
+                    headers=["Name", "Path", "Status"],
+                    tablefmt="grid",
+                )
             )
-        )
-        print("\nUnmanaged Service Status:")
-        print(
-            tabulate(
-                unmanaged_services, headers=["Name", "Path", "Status"], tablefmt="grid"
-            )
-        )
 
 
 def get_parser_args() -> argparse.Namespace:

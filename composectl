@@ -8,6 +8,7 @@ from pathlib import Path
 from enum import Enum
 from dataclasses import dataclass
 import re
+from tabulate import tabulate
 
 
 class Action(str, Enum):
@@ -34,8 +35,13 @@ class Service:
 
 
 class ComposeCtl:
-    def __init__(self, compose_dir: Path = Path("compose").absolute()):
+    def __init__(
+        self,
+        compose_dir: Path = Path("compose").absolute(),
+        dry_run: bool = False,
+    ):
         self.config = self.load_config()
+        self.dry_run = dry_run
         self.network = self.load_network()
         self.compose_dir = compose_dir.absolute()
         self.services = self.load_services()
@@ -54,30 +60,29 @@ class ComposeCtl:
         return Network(name="compose_ctl_default", driver="bridge")
 
     def create_network(self):
-        result = subprocess.run(
-            ["docker", "network", "ls", "--format", "{{.Name}}"],
-            check=True,
-            capture_output=True,
-            text=True,
+        is_network_exist = subprocess.run(
+            ["docker", "network", "inspect", self.network.name],
+            check=False,
+            capture_output=True,  # To suppress unnecessary output
         )
 
-        existing_networks = result.stdout.splitlines()
-
-        if self.network.name not in existing_networks:
-            print(
-                f"Creating network '{self.network.name}' with driver '{self.network.driver}'"
-            )
-            subprocess.run(
-                [
-                    "docker",
-                    "network",
-                    "create",
-                    "--driver",
-                    self.network.driver,
-                    self.network.name,
-                ],
-                check=True,
-            )
+        if is_network_exist.returncode != 0:  # Network does not exist
+            cmd = [
+                "docker",
+                "network",
+                "create",
+                "--driver",
+                self.network.driver,
+                self.network.name,
+            ]
+            if self.dry_run:
+                print(f"[DRY RUN] Would run: {" ".join(cmd)}")
+            else:
+                print(f"Running: {" ".join(cmd)}")
+                subprocess.run(
+                    cmd,
+                    check=True,
+                )
         # else:
         #     print(f"Network '{self.network.name}' already exists.")
 
@@ -90,25 +95,27 @@ class ComposeCtl:
 
     def execute(self, service: Service, action: Action):
         if service.path.exists():
-            print(
-                f"Running: docker compose -f {service.path}/docker-compose.yml {action.value}"
-            )
-            subprocess.run(
-                [
-                    "docker",
-                    "compose",
-                    "-f",
-                    f"{service.path}/docker-compose.yml",
-                ]
-                + action.value.split(" "),
-                check=True,
-                env={"CONTAINER_NETWORK": self.network.name},
-            )
+
+            cmd = [
+                "docker",
+                "compose",
+                "-f",
+                f"{service.path}/docker-compose.yml",
+            ] + action.value.split(" ")
+            if self.dry_run:
+                print(f"[DRY RUN] Would run: {" ".join(cmd)}")
+            else:
+                print(f"Running: {" ".join(cmd)}")
+                subprocess.run(
+                    cmd,
+                    check=True,
+                    env={"CONTAINER_NETWORK": self.network.name},
+                )
         else:
             print(f"Service '{service.name}' not found in '{self.compose_dir}'")
 
     def run(self, action: Action, service_name_list: list[str] | None = None):
-        if action in [Action.UP, Action]:
+        if action in [Action.UP, Action.RESTART]:
             self.create_network()
         if not service_name_list:
             if action in [Action.UP, Action.RESTART, Action.LOGS]:
@@ -120,10 +127,7 @@ class ComposeCtl:
             else:
                 services = self.services
         else:
-            services = [
-                next(svc for svc in self.services if svc.name == svc_str)
-                for svc_str in service_name_list
-            ]
+            services = [svc for svc in self.services if svc.name in service_name_list]
         for service in services:
             self.execute(service=service, action=action)
 
@@ -194,20 +198,22 @@ class ComposeCtl:
                 )
         return managed_services, unmanaged_services
 
-    def show_status(self, global_status=False):
+    def show_status(self):
         """Show status of services. If global_status is True, lists all projects; otherwise, only those in compose directory."""
         managed_services, unmanaged_services = self.get_status()
 
-        # Print managed services
         print("Service Status:")
-        for name, path, status in sorted(managed_services):
-            print(f"  - {name}: {status}")
-
-        # Print unmanaged services
-        if unmanaged_services:
-            print("\nUnmanaged Service Status:")
-            for name, path, status in sorted(unmanaged_services):
-                print(f"  - {name} ({path}): {status}")
+        print(
+            tabulate(
+                managed_services, headers=["Name", "Path", "Status"], tablefmt="grid"
+            )
+        )
+        print("\nUnmanaged Service Status:")
+        print(
+            tabulate(
+                unmanaged_services, headers=["Name", "Path", "Status"], tablefmt="grid"
+            )
+        )
 
 
 def get_parser_args() -> argparse.Namespace:
@@ -220,13 +226,19 @@ def get_parser_args() -> argparse.Namespace:
     parser.add_argument(
         "services", nargs="*", help="Optional list of services to manage"
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Only show commands without executing",
+        default=False,
+    )
 
     return parser.parse_args()
 
 
 def main():
     args = get_parser_args()
-    cctl = ComposeCtl()
+    cctl = ComposeCtl(dry_run=args.dry_run)
 
     action_map = {
         "up": cctl.run,

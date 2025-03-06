@@ -7,8 +7,11 @@ import os
 from pathlib import Path
 from enum import Enum
 from dataclasses import dataclass
-import re
 from tabulate import tabulate
+
+
+BASE_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
+HOME_DIR = Path(os.path.expanduser("~"))
 
 
 class Action(str, Enum):
@@ -37,17 +40,52 @@ class Service:
 class ComposeCtl:
     def __init__(
         self,
-        compose_dir: Path = Path("compose").absolute(),
+        config_path: str | None = None,
+        compose_dir: str | None = None,
         dry_run: bool = False,
     ):
-        self.config = self.load_config()
+        if config_path:
+            if not Path(config_path).exists():
+                raise FileNotFoundError(f"Config File not found: {config_path}")
+            self.config_path = Path(config_path)
+        elif Path(BASE_DIR / "composectl.yaml").exists():
+            self.config_path = BASE_DIR / "composectl.yaml"
+        elif Path(HOME_DIR / ".config/composectl.yaml").exists():
+            self.config_path = HOME_DIR / ".config" / "composectl.yaml"
+        else:
+            raise FileNotFoundError(
+                "Config File not found: "
+                f"{BASE_DIR}/composectl.yaml"
+                f" or {HOME_DIR}/.config/composectl.yaml"
+            )
+        self.config_path = self.config_path.absolute()
+        print(f"Config Path: {self.config_path}")
+        self.config = self.load_config(self.config_path)
         self.dry_run = dry_run
         self.network = self.load_network()
-        self.compose_dir = compose_dir.absolute()
+
+        if compose_dir:
+            if not Path(compose_dir).exists():
+                raise FileNotFoundError(f"Compose Directory not found: {compose_dir}")
+            self.compose_dir = Path(compose_dir).absolute()
+        elif Path(BASE_DIR / "compose").exists():
+            self.compose_dir = Path(BASE_DIR / "compose").absolute()
+        elif Path(self.config.get("compose_base_path", None)).exists():
+            self.compose_dir = Path(
+                self.config.get("compose_base_path", None)
+            ).absolute()
+        else:
+            raise FileNotFoundError(
+                "Compose Directory not found: "
+                f"{BASE_DIR}/compose"
+                f" or {self.config.get("compose_base_path", None)}"
+            )
+        print(f"Compose Base Path: {self.compose_dir}")
+
         self.services = self.load_services()
 
-    def load_config(self):
-        config_path = "config.yaml"
+    def load_config(self, config_path: Path):
+
         if os.path.exists(config_path):
             with open(config_path, "r") as file:
                 return yaml.safe_load(file)
@@ -87,9 +125,12 @@ class ComposeCtl:
         #     print(f"Network '{self.network.name}' already exists.")
 
     def load_services(self):
-        svc = os.listdir(self.compose_dir)
+        svc_list = os.listdir(self.compose_dir)
         svc_object_list = [
-            Service(name=svc, path=self.compose_dir / svc) for svc in svc
+            Service(name=svc, path=self.compose_dir / svc)
+            for svc in svc_list
+            if (self.compose_dir / svc).is_dir()
+            and (self.compose_dir / svc / "docker-compose.yml").exists()
         ]
         return svc_object_list
 
@@ -254,13 +295,31 @@ def get_parser_args() -> argparse.Namespace:
         help="Only show commands without executing",
         default=False,
     )
+    parser.add_argument(
+        "-c",
+        "--config-file",
+        type=str,
+        help="Path to the config file (default: ~/.config/composectl.yaml)",
+        default=None,
+    )
+    parser.add_argument(
+        "-d",
+        "--compose-dir",
+        type=str,
+        help="Path to the directory containing compose files",
+        default=None,
+    )
 
     return parser.parse_args()
 
 
 def main():
     args = get_parser_args()
-    cctl = ComposeCtl(dry_run=args.dry_run)
+    cctl = ComposeCtl(
+        dry_run=args.dry_run,
+        config_path=args.config_file,
+        compose_dir=args.compose_dir,
+    )
 
     action_map = {
         "up": cctl.run,

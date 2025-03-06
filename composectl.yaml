@@ -1,0 +1,12 @@
+compose_base_path: /home/jackson/composectl
+
+network:
+  name: secure-bridge
+  driver: bridge
+
+services:
+  enable:
+    - pi-hole
+    - traefik
+  disable:
+    - vaultwarden

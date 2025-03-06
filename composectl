@@ -1,0 +1,342 @@
+#!/usr/bin/env python
+
+import argparse
+import subprocess
+import yaml
+import os
+from pathlib import Path
+from enum import Enum
+from dataclasses import dataclass
+from tabulate import tabulate
+
+
+BASE_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
+HOME_DIR = Path(os.path.expanduser("~"))
+
+
+class Action(str, Enum):
+    UP = "up -d"
+    STOP = "stop"
+    RESTART = "restart"
+    DOWN = "down -v"
+    LS = "ls"
+    LOGS = "logs"
+    STATUS = "status"
+
+
+@dataclass
+class Network:
+    name: str
+    driver: str
+
+
+@dataclass
+class Service:
+    name: str
+    path: Path
+    status: str | None = None
+
+
+class ComposeCtl:
+    def __init__(
+        self,
+        config_path: str | None = None,
+        compose_dir: str | None = None,
+        dry_run: bool = False,
+    ):
+        if config_path:
+            if not Path(config_path).exists():
+                raise FileNotFoundError(f"Config File not found: {config_path}")
+            self.config_path = Path(config_path)
+        elif Path(BASE_DIR / "composectl.yaml").exists():
+            self.config_path = BASE_DIR / "composectl.yaml"
+        elif Path(HOME_DIR / ".config/composectl.yaml").exists():
+            self.config_path = HOME_DIR / ".config" / "composectl.yaml"
+        else:
+            raise FileNotFoundError(
+                "Config File not found: "
+                f"{BASE_DIR}/composectl.yaml"
+                f" or {HOME_DIR}/.config/composectl.yaml"
+            )
+        self.config_path = self.config_path.absolute()
+        print(f"Config Path: {self.config_path}")
+        self.config = self.load_config(self.config_path)
+        self.dry_run = dry_run
+        self.network = self.load_network()
+
+        if compose_dir:
+            if not Path(compose_dir).exists():
+                raise FileNotFoundError(f"Compose Directory not found: {compose_dir}")
+            self.compose_dir = Path(compose_dir).absolute()
+        elif Path(BASE_DIR / "compose").exists():
+            self.compose_dir = Path(BASE_DIR / "compose").absolute()
+        elif Path(self.config.get("compose_base_path", None)).exists():
+            self.compose_dir = Path(
+                self.config.get("compose_base_path", None)
+            ).absolute()
+        else:
+            raise FileNotFoundError(
+                "Compose Directory not found: "
+                f"{BASE_DIR}/compose"
+                f" or {self.config.get("compose_base_path", None)}"
+            )
+        print(f"Compose Base Path: {self.compose_dir}")
+
+        self.services = self.load_services()
+
+    def load_config(self, config_path: Path):
+
+        if os.path.exists(config_path):
+            with open(config_path, "r") as file:
+                return yaml.safe_load(file)
+        return {}
+
+    def load_network(self):
+        network = self.config.get("network", {})
+        if network:
+            return Network(name=network["name"], driver=network["driver"])
+        return Network(name="compose_ctl_default", driver="bridge")
+
+    def create_network(self):
+        is_network_exist = subprocess.run(
+            ["docker", "network", "inspect", self.network.name],
+            check=False,
+            capture_output=True,  # To suppress unnecessary output
+        )
+
+        if is_network_exist.returncode != 0:  # Network does not exist
+            cmd = [
+                "docker",
+                "network",
+                "create",
+                "--driver",
+                self.network.driver,
+                self.network.name,
+            ]
+            if self.dry_run:
+                print(f"[DRY RUN] Would run: {" ".join(cmd)}")
+            else:
+                print(f"Running: {" ".join(cmd)}")
+                subprocess.run(
+                    cmd,
+                    check=True,
+                )
+        # else:
+        #     print(f"Network '{self.network.name}' already exists.")
+
+    def load_services(self):
+        svc_list = os.listdir(self.compose_dir)
+        svc_object_list = [
+            Service(name=svc, path=self.compose_dir / svc)
+            for svc in svc_list
+            if (self.compose_dir / svc).is_dir()
+            and (self.compose_dir / svc / "docker-compose.yml").exists()
+        ]
+        return svc_object_list
+
+    def execute(self, service: Service, action: Action):
+        compose_file = service.path / "docker-compose.yml"
+        if not compose_file.exists():
+            print(
+                f"⚠️ Skipping '{service.name}': No docker-compose.yml found at {compose_file}"
+            )
+            return
+
+        cmd = [
+            "docker",
+            "compose",
+            "-f",
+            f"{service.path}/docker-compose.yml",
+        ] + action.value.split(" ")
+        if self.dry_run:
+            print(f"[DRY RUN] Would run: {" ".join(cmd)}")
+        else:
+            print(f"Running: {" ".join(cmd)}")
+            env_vars = os.environ.copy()
+            env_vars["CONTAINER_NETWORK"] = self.network.name
+            try:
+                subprocess.run(
+                    cmd,
+                    check=True,
+                    env=env_vars,
+                )
+            except subprocess.CalledProcessError as e:
+                print(f"⚠️ Error running '{service.name}': {e}")
+
+    def run(self, action: Action, service_name_list: list[str] | None = None):
+        if action in [Action.UP, Action.RESTART]:
+            self.create_network()
+        if not service_name_list:
+            if action in [Action.UP, Action.RESTART, Action.LOGS]:
+                services = [
+                    svc
+                    for svc in self.services
+                    if svc.name in self.config.get("services", {}).get("enable", [])
+                ]
+            else:
+                services = self.services
+        else:
+            services = [svc for svc in self.services if svc.name in service_name_list]
+        for service in services:
+            self.execute(service=service, action=action)
+
+    def apply(self):
+        active_services = [
+            svc
+            for svc in self.services
+            if svc.name in self.config.get("services", {}).get("enable", []) or []
+        ]
+        inactive_services = [
+            svc
+            for svc in self.services
+            if svc.name in self.config.get("services", {}).get("disable", []) or []
+        ]
+        if not active_services and not inactive_services:
+            print("No services to manage.")
+            return
+        if inactive_services:
+            for svc in inactive_services:
+                self.execute(service=svc, action=Action.STOP)
+        if active_services:
+            self.create_network()
+            for svc in active_services:
+                self.execute(service=svc, action=Action.UP)
+
+    def list_services(self):
+        print("Available services:")
+        for service in self.services:
+            print(f"  - {service.name}")
+
+    def get_status(self):
+        # Run docker compose ls and capture output
+        try:
+            result = subprocess.run(
+                ["docker", "compose", "ls", "-a"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"⚠️ Error fetching status: {e}")
+            return [], []
+
+        existing_services = {}
+        lines = result.stdout.split("\n")
+
+        for line in lines[1:]:  # Skip header
+            parts = line.split()
+            if len(parts) >= 3:
+                project_name, status, compose_file_path = parts[:3]
+
+                existing_services[project_name] = {
+                    "status": status,
+                    "compose_file_path": Path(compose_file_path),
+                }
+
+        # Categorize services into managed and unmanaged
+        managed_services = []
+        unmanaged_services = []
+
+        for name, service in existing_services.items():
+            if any(
+                svc.name == name and svc.path == service["compose_file_path"].parent
+                for svc in self.services
+            ):  # Check if in compose directory
+                managed_services.append(
+                    (name, service["compose_file_path"], service["status"])
+                )
+            else:
+                unmanaged_services.append(
+                    (name, service["compose_file_path"], service["status"])
+                )
+        return managed_services, unmanaged_services
+
+    def show_status(self):
+        """Show status of services. If global_status is True, lists all projects; otherwise, only those in compose directory."""
+        managed_services, unmanaged_services = self.get_status()
+        if not managed_services:
+            print("No managed services found.")
+        else:
+            print("Service Status:")
+            print(
+                tabulate(
+                    managed_services,
+                    headers=["Name", "Path", "Status"],
+                    tablefmt="grid",
+                )
+            )
+
+        if not unmanaged_services:
+            print("No unmanaged services found.")
+        else:
+            print("\nUnmanaged Service Status:")
+            print(
+                tabulate(
+                    unmanaged_services,
+                    headers=["Name", "Path", "Status"],
+                    tablefmt="grid",
+                )
+            )
+
+
+def get_parser_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Manage Docker Compose services")
+    parser.add_argument(
+        "action",
+        choices=["up", "down", "restart", "status", "ls", "logs", "stop", "apply"],
+        help="Action to perform",
+    )
+    parser.add_argument(
+        "services", nargs="*", help="Optional list of services to manage"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Only show commands without executing",
+        default=False,
+    )
+    parser.add_argument(
+        "-c",
+        "--config-file",
+        type=str,
+        help="Path to the config file (default: ~/.config/composectl.yaml)",
+        default=None,
+    )
+    parser.add_argument(
+        "-d",
+        "--compose-dir",
+        type=str,
+        help="Path to the directory containing compose files",
+        default=None,
+    )
+
+    return parser.parse_args()
+
+
+def main():
+    args = get_parser_args()
+    cctl = ComposeCtl(
+        dry_run=args.dry_run,
+        config_path=args.config_file,
+        compose_dir=args.compose_dir,
+    )
+
+    action_map = {
+        "up": cctl.run,
+        "stop": cctl.run,
+        "down": cctl.run,
+        "restart": cctl.run,
+        "logs": cctl.run,
+        "apply": cctl.apply,
+        "status": cctl.show_status,
+        "ls": cctl.list_services,
+    }
+    if args.action in action_map:
+        if args.action in ["up", "down", "restart", "logs", "stop"]:
+            action_map[args.action](Action[args.action.upper()], args.services)
+        else:
+            action_map[args.action]()
+
+
+if __name__ == "__main__":
+    main()

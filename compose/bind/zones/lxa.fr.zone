@@ -1,5 +1,5 @@
 $TTL    604800
-@       IN      SOA     lxa.local.  root.lxa.local. (
+@       IN      SOA     lxa.com.  root.lxa.com. (
                         1           ; Serial
                         604800      ; Refresh
                         86400       ; Retry
@@ -7,8 +7,10 @@ $TTL    604800
                         604800      ; Negative Cache TTL
                         )
 
-@       IN      NS      lxa.local.
-@       IN      A       10.0.0.1
-@       IN      A       192.168.1.1
-www     IN      CNAME   lxa.local.
-*       IN      CNAME   lxa.local.
+@       IN      NS      lxa.com.
+@       IN      A       10.0.0.2
+@       IN      A       192.168.1.2
+@       IN      A       10.0.0.3
+@       IN      A       192.168.1.3
+www     IN      CNAME   lxa.com.
+*       IN      CNAME   lxa.com.

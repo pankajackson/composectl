@@ -14,10 +14,4 @@ services:
       - /opt/storage/bind/cache:/var/cache/bind
       - /opt/storage/bind/records:/var/lib/bind
     restart: always
-    networks:
-      - secure-network
-
-networks:
-  secure-network:
-    external: true
-    name: ${CONTAINER_NETWORK}
+    network_mode: "host"

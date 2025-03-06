@@ -179,22 +179,16 @@ class ComposeCtl:
             print(f"⚠️ Error fetching status: {e}")
             return [], []
 
-        running_services = {}
+        existing_services = {}
         lines = result.stdout.split("\n")
 
         for line in lines[1:]:  # Skip header
-            parts = line.split(maxsplit=2)  # Split on multiple spaces
+            parts = line.split()
             if len(parts) >= 3:
                 project_name, status, compose_file_path = parts[:3]
 
-                # Extract running replica count from status if present (e.g., running(1))
-                match = re.search(r"running\((\d+)\)", status)
-                replica_count = match.group(1) if match else "?"
-
-                running_services[project_name] = {
-                    "status": (
-                        f"running({replica_count})" if "running" in status else status
-                    ),
+                existing_services[project_name] = {
+                    "status": status,
                     "compose_file_path": Path(compose_file_path),
                 }
 
@@ -202,7 +196,7 @@ class ComposeCtl:
         managed_services = []
         unmanaged_services = []
 
-        for name, service in running_services.items():
+        for name, service in existing_services.items():
             if any(
                 svc.name == name and svc.path == service["compose_file_path"].parent
                 for svc in self.services

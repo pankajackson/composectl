@@ -1,4 +1,4 @@
-compose_base_path: /home/jackson/WorkSpace/composectl/compose/asd
+compose_base_path: /home/jackson/composectl
 
 network:
   name: secure-bridge

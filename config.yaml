@@ -1,0 +1,11 @@
+network:
+  name: my_custom_network
+  driver: bridge
+
+services:
+  enable:
+    - pi-hole
+    - traefik
+    - vaultwarden
+  disable:
+    - watchtower

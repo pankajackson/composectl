@@ -78,7 +78,7 @@ class ComposeCtl:
             raise FileNotFoundError(
                 "Compose Directory not found: "
                 f"{BASE_DIR}/compose"
-                f" or {self.config.get("compose_base_path", None)}"
+                f" or {self.config.get('compose_base_path', None)}"
             )
         print(f"Compose Base Path: {self.compose_dir}")
 
@@ -114,9 +114,9 @@ class ComposeCtl:
                 self.network.name,
             ]
             if self.dry_run:
-                print(f"[DRY RUN] Would run: {" ".join(cmd)}")
+                print(f"[DRY RUN] Would run: {' '.join(cmd)}")
             else:
-                print(f"Running: {" ".join(cmd)}")
+                print(f"Running: {' '.join(cmd)}")
                 subprocess.run(
                     cmd,
                     check=True,
@@ -149,9 +149,9 @@ class ComposeCtl:
             f"{service.path}/docker-compose.yml",
         ] + action.value.split(" ")
         if self.dry_run:
-            print(f"[DRY RUN] Would run: {" ".join(cmd)}")
+            print(f"[DRY RUN] Would run: {' '.join(cmd)}")
         else:
-            print(f"Running: {" ".join(cmd)}")
+            print(f"Running: {' '.join(cmd)}")
             env_vars = os.environ.copy()
             env_vars["CONTAINER_NETWORK"] = self.network.name
             try:

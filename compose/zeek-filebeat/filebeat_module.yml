@@ -132,7 +132,7 @@ filebeat.modules:
 # setup.dashboards.enabled: true
 
 output.logstash:
-  hosts: ["shipper.jackson.com:5044"]
+  hosts: ["shipper.lxa.com:5044"]
 
 processors:
   - add_host_metadata: ~

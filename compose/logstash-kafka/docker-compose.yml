@@ -21,6 +21,7 @@ services:
       - /opt/storage/kafka/kafka-1-data:/var/lib/kafka
     networks:
       - secure-network
+    restart: always
 
   kafka-2:
     image: apache/kafka:latest
@@ -44,6 +45,7 @@ services:
       - /opt/storage/kafka/kafka-2-data:/var/lib/kafka
     networks:
       - secure-network
+    restart: always
 
   kafka-3:
     image: apache/kafka:latest
@@ -67,6 +69,7 @@ services:
       - /opt/storage/kafka/kafka-3-data:/var/lib/kafka
     networks:
       - secure-network
+    restart: always
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.13.2
@@ -76,6 +79,10 @@ services:
       - "5000:5000/tcp"
       - "5000:5000/udp"
       - "8008:8008"
+    environment:
+      LS_JAVA_OPTS: "-Xms512m -Xmx512m"
+      LOG_LEVEL: info
+      LOGSTASH_MONITORING_ENABLED: false
     volumes:
       - ./logstash/pipelines:/usr/share/logstash/pipeline
       - /opt/storage/logstash/logs:/logs
@@ -85,10 +92,7 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
-    environment:
-      LS_JAVA_OPTS: "-Xms512m -Xmx512m"
-      LOG_LEVEL: info
-      LOGSTASH_MONITORING_ENABLED: false
+    restart: always
 
 networks:
   secure-network:

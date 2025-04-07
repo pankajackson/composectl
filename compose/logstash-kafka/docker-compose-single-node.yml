@@ -1,0 +1,56 @@
+services:
+  kafka-1:
+    image: apache/kafka:latest
+    container_name: kafka-1
+    ports:
+      - "19092:19092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:19092,CONTROLLER://0.0.0.0:19093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka.lxa.com:19092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx512M"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:19093
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - /opt/storage/kafka/kafka-1-data:/var/lib/kafka
+    networks:
+      - secure-network
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.2
+    container_name: logstash
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "8008:8008"
+    environment:
+      LS_JAVA_OPTS: "-Xms256m -Xmx512m"
+      LOG_LEVEL: info
+      LOGSTASH_MONITORING_ENABLED: false
+    volumes:
+      - ./logstash/pipelines:/usr/share/logstash/pipeline
+      - /opt/storage/logstash/logs:/logs
+    networks:
+      - secure-network
+    depends_on:
+      - kafka-1
+    restart: unless-stopped
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

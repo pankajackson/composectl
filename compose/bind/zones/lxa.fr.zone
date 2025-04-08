@@ -14,3 +14,9 @@ $TTL    604800
 @       IN      A       192.168.1.3
 www     IN      CNAME   lxa.com.
 *       IN      CNAME   lxa.com.
+ws05    IN      A       192.168.1.5
+sdiff   IN      CNAME   ws05
+tabby   IN      CNAME   ws05
+jellyfin    IN      CNAME   ws05
+resume  IN      CNAME   ws05
+ollama  IN      CNAME   ws05

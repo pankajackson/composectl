@@ -34,6 +34,7 @@ services:
       - "traefik.http.routers.homepage-https.entrypoints=websecure"
       - "traefik.http.routers.homepage-https.tls=true"
       - "traefik.http.routers.homepage-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.homepage-https.middlewares=authentik@file"
 
       # Middleware for redirecting HTTP to HTTPS
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"

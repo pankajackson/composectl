@@ -151,6 +151,10 @@
         - abbr: VC
           href: https://app.vagrantup.com/
 
+    - ChristianLempa BoilerPlates:
+        - abbr: CBP
+          href: https://github.com/ChristianLempa/boilerplates
+
 - Data Science:
     - Hugging Face:
         - abbr: HF

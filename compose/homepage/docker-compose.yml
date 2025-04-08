@@ -39,7 +39,7 @@ services:
       # Middleware for redirecting HTTP to HTTPS
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
-    restart: always
+    restart: unless-stopped
 
 networks:
   secure-network:

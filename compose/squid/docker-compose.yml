@@ -11,7 +11,7 @@ services:
       - ./conf.d:/etc/squid/conf.d
       - /opt/storage/squid/log:/var/log/squid
       - /opt/storage/squid/cache:/var/spool/squid
-    restart: always
+    restart: unless-stopped
     networks:
       - secure-network
 

@@ -15,7 +15,7 @@ services:
       - "traefik.http.routers.ittools-https.tls=true"
       - "traefik.http.routers.ittools-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.ittools-https.middlewares=authentik@file"
-    restart: always
+    restart: unless-stopped
 
 networks:
   secure-network:

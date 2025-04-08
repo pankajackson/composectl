@@ -12,7 +12,7 @@ services:
     entrypoint: ["zeek", "-i", "eth0", "LogAscii::use_json=T"]
     volumes:
       - /opt/storage/zeek/logs/eth0:/usr/local/zeek/logs/current
-    restart: always
+    restart: unless-stopped
 
   zeek_wlan0:
     container_name: zeek_wlan0
@@ -27,7 +27,7 @@ services:
     entrypoint: ["zeek", "-i", "wlan0", "LogAscii::use_json=T"]
     volumes:
       - /opt/storage/zeek/logs/wlan0:/usr/local/zeek/logs/current
-    restart: always
+    restart: unless-stopped
 
   filebeat:
     container_name: filebeat
@@ -47,4 +47,4 @@ services:
         condition: service_started
       zeek_wlan0:
         condition: service_started
-    restart: always
+    restart: unless-stopped

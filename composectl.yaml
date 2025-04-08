@@ -6,7 +6,13 @@ network:
 
 services:
   enable:
-    - pi-hole
+    - bind
+    - dhcp
     - traefik
+    - homepage
+    - it-tools
+    - zeek-filebeat
+    - logstash-kafka
+    - authentik
   disable:
     - vaultwarden

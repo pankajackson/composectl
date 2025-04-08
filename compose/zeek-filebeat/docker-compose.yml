@@ -33,7 +33,7 @@ services:
     container_name: filebeat
     image: docker.elastic.co/beats/filebeat:8.1.0
     volumes:
-      - ./filebeat_module.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./config/filebeat_module.yml:/usr/share/filebeat/filebeat.yml:ro
       - /opt/storage/zeek/logs:/var/log/zeek:ro
     environment:
       - "ES_HOST=https://es.jackson.com:443"

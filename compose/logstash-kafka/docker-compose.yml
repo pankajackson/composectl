@@ -23,7 +23,14 @@ services:
     networks:
       - secure-network
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      test:
+        [
+          "CMD",
+          "/opt/kafka/bin/kafka-topics.sh",
+          "--bootstrap-server",
+          "kafka.lxa.com:19092",
+          "--list",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -53,7 +60,14 @@ services:
     networks:
       - secure-network
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      test:
+        [
+          "CMD",
+          "/opt/kafka/bin/kafka-topics.sh",
+          "--bootstrap-server",
+          "kafka.lxa.com:29092",
+          "--list",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -83,7 +97,14 @@ services:
     networks:
       - secure-network
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      test:
+        [
+          "CMD",
+          "/opt/kafka/bin/kafka-topics.sh",
+          "--bootstrap-server",
+          "kafka.lxa.com:39092",
+          "--list",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -102,7 +123,7 @@ services:
       LOG_LEVEL: info
       LOGSTASH_MONITORING_ENABLED: "false"
     volumes:
-      - ./logstash/pipelines:/usr/share/logstash/pipeline
+      - ./config/logstash/pipelines:/usr/share/logstash/pipeline
       - /opt/storage/logstash/logs:/logs
     networks:
       - secure-network

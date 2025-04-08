@@ -46,6 +46,12 @@
                         siteMonitor: http://traefik.lxa.com:8080
                         server: docker
                         container: traefik
+                - Authentik:
+                        icon: authentik.png
+                        href: http://authentik.lxa.com
+                        siteMonitor: http://authentik.lxa.com
+                        server: docker
+                        container: authentik-server-1
                 - Stable Diffusion:
                         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/pigallery2.png
                         href: http://sdiff.lxa.com:7860

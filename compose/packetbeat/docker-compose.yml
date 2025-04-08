@@ -14,7 +14,7 @@ services:
       - "ES_PASS=mypass"
       - "SSL_CERT_VERIFICATION=none"
     volumes:
-      - ./packetbeat.yml:/usr/share/packetbeat/packetbeat.yml:ro
+      - ./config/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml:ro
     network_mode: "host"
     cap_add:
       - NET_ADMIN

@@ -41,8 +41,6 @@ services:
     container_name: logstash
     ports:
       - "5044:5044"
-      - "5000:5000/tcp"
-      - "5000:5000/udp"
       - "8008:8008"
     environment:
       LS_JAVA_OPTS: "-Xms256m -Xmx512m"

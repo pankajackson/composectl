@@ -60,7 +60,7 @@
                         # container: sd-forge-stable-diffusion-webui-forge-1
                 - Tabby:
                         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/nexterm-light.png
-                        href: http://sdiff.lxa.com:7861
+                        href: http://tabby.lxa.com:7861
                         # siteMonitor: http://tabby.lxa.com:7861
                         # server: docker
                         # container: tabby-tabby-1

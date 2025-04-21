@@ -45,7 +45,7 @@ services:
     environment:
       LS_JAVA_OPTS: "-Xms256m -Xmx512m"
       LOG_LEVEL: info
-      LOGSTASH_MONITORING_ENABLED: "false"
+      LOGSTASH_MONITORING_ENABLED: false
     volumes:
       - ./config/logstash/pipelines:/usr/share/logstash/pipeline
       - /opt/storage/logstash/logs:/logs

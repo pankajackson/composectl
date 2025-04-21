@@ -1,6 +1,6 @@
 services:
   tabby:
-    restart: always
+    restart: unless-stopped
     image: registry.tabbyml.com/tabbyml/tabby
     command: serve --model StarCoder-1B --chat-model Qwen2-1.5B-Instruct --device cuda
     volumes:

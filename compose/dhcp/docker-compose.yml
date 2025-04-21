@@ -5,7 +5,7 @@ services:
     restart: always
     network_mode: "host"
     volumes:
-      - ./dhcpd.conf:/etc/dhcp/dhcpd.conf:ro
+      - ./config/dhcpd.conf:/etc/dhcp/dhcpd.conf:ro
       - /opt/storage/dhcp:/var/lib/dhcp
     environment:
       - INTERFACES=

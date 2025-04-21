@@ -31,3 +31,7 @@ providers:
   docker:
     endpoint: unix:///var/run/docker.sock
     exposedByDefault: false
+    watch: true
+  file:
+    directory: /etc/traefik/conf/
+    watch: true

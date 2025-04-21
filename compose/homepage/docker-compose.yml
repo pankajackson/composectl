@@ -5,12 +5,12 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     volumes:
-      - ./bookmarks.yaml:/app/config/bookmarks.yaml
-      - ./services.yaml:/app/config/services.yaml
-      - ./settings.yaml:/app/config/settings.yaml
-      - ./widgets.yaml:/app/config/widgets.yaml
-      - ./docker.yaml:/app/config/docker.yaml
-      - ./kubernetes.yaml:/app/config/kubernetes.yaml
+      - ./config/bookmarks.yaml:/app/config/bookmarks.yaml
+      - ./config/services.yaml:/app/config/services.yaml
+      - ./config/settings.yaml:/app/config/settings.yaml
+      - ./config/widgets.yaml:/app/config/widgets.yaml
+      - ./config/docker.yaml:/app/config/docker.yaml
+      - ./config/kubernetes.yaml:/app/config/kubernetes.yaml
       - /opt/storage/homepage/config:/app/config # Make sure your local config directory exists
       - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations, see alternative methods
     environment:
@@ -34,11 +34,12 @@ services:
       - "traefik.http.routers.homepage-https.entrypoints=websecure"
       - "traefik.http.routers.homepage-https.tls=true"
       - "traefik.http.routers.homepage-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.homepage-https.middlewares=authentik@file"
 
       # Middleware for redirecting HTTP to HTTPS
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
-    restart: always
+    restart: unless-stopped
 
 networks:
   secure-network:

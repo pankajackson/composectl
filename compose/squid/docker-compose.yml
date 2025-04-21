@@ -8,10 +8,10 @@ services:
       - 3128:3128
     volumes:
       - ./config/squid.conf:/etc/squid/squid.conf
-      - ./conf.d:/etc/squid/conf.d
+      - ./config/conf.d:/etc/squid/conf.d
       - /opt/storage/squid/log:/var/log/squid
       - /opt/storage/squid/cache:/var/spool/squid
-    restart: always
+    restart: unless-stopped
     networks:
       - secure-network
 

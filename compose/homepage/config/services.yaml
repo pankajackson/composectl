@@ -43,49 +43,49 @@
                 - Traefik:
                         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/traefik.png
                         href: http://traefik.lxa.com:8080
-                        siteMonitor: http://traefik.lxa.com:8080
+                        # siteMonitor: http://traefik.lxa.com:8080
                         server: docker
                         container: traefik
                 - Authentik:
                         icon: authentik.png
                         href: http://authentik.lxa.com
-                        siteMonitor: http://authentik.lxa.com
+                        # siteMonitor: http://authentik.lxa.com
                         server: docker
                         container: authentik-server-1
                 - Stable Diffusion:
                         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/pigallery2.png
                         href: http://sdiff.lxa.com:7860
-                        siteMonitor: http://sdiff.lxa.com:7860
+                        # siteMonitor: http://sdiff.lxa.com:7860
                         # server: docker
                         # container: sd-forge-stable-diffusion-webui-forge-1
                 - Tabby:
                         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/nexterm-light.png
-                        href: http://sdiff.lxa.com:7861
-                        siteMonitor: http://tabby.lxa.com:7861
+                        href: http://tabby.lxa.com:7861
+                        # siteMonitor: http://tabby.lxa.com:7861
                         # server: docker
                         # container: tabby-tabby-1
                 - Ollama:
                         icon: ollama.png
                         href: http://ollama.lxa.com:7862
-                        siteMonitor: http://ollama.lxa.com:7862
+                        # siteMonitor: http://ollama.lxa.com:7862
                         # server: docker
                         # container: ollama-open-webui-open-webui-1
                 - IT-Tools:
                         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/it-tools.png
                         href: https://itt.linuxastra.in
-                        siteMonitor: https://itt.linuxastra.in
+                        # siteMonitor: https://itt.linuxastra.in
                         server: docker
                         container: it-tools
                 - Jellyfin:
                         icon: jellyfin.png
                         href: http://jellyfin.lxa.com:8096
-                        siteMonitor: http://jellyfin.lxa.com:8096
+                        # siteMonitor: http://jellyfin.lxa.com:8096
                         # server: docker
                         # container: jellyfin
                 - re-resume:
                         icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/reactive-resume.png
                         href: http://resume.lxa.com:3000
-                        siteMonitor: http://resume.lxa.com:3000
+                        # siteMonitor: http://resume.lxa.com:3000
                         # server: docker
                         # container: reactive-resume-app-1
 

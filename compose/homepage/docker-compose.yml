@@ -16,6 +16,7 @@ services:
     environment:
       PUID: 0
       PGID: 0
+      HOMEPAGE_ALLOWED_HOSTS: "*"
     networks:
       - secure-network
     labels:

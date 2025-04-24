@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     command: --no-half --no-half-vae --precision full --api --cuda-malloc # --enable-insecure-extension-access
     runtime: nvidia
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "7860:8080/tcp"
     volumes:
@@ -20,18 +20,6 @@ services:
       - ALL
     cap_add:
       - NET_BIND_SERVICE
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - "node.labels.iface != extern"
-      restart_policy:
-        condition: unless-stopped
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
     networks:
       - secure-network
 

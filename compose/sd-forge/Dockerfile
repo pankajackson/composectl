@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 AS minimal
+FROM nvidia/cuda:12.3.1-runtime-ubuntu22.04 AS minimal
 
 COPY entrypoint.sh /app/entrypoint.sh
 

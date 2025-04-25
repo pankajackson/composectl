@@ -216,3 +216,7 @@
     - Mastodon:
         - abbr: MAS
           href: https://joinmastodon.org/
+
+    - Productivity:
+        - abbr: DLG
+          href: https://www.duolingo.com/

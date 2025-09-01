@@ -3,6 +3,8 @@ services:
     restart: unless-stopped
     image: registry.tabbyml.com/tabbyml/tabby
     command: serve --model StarCoder-1B --chat-model Qwen2-1.5B-Instruct --device cuda
+    devices:
+      - nvidia.com/gpu=all
     volumes:
       - "/opt/storage/tabby/data:/data"
     ports:

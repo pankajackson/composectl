@@ -17,6 +17,8 @@ services:
       - "11434:11434"
     volumes:
       - /opt/storage/open-webui/ollama:/root/.ollama
+    devices:
+      - nvidia.com/gpu=all
     deploy:
       resources:
         reservations:

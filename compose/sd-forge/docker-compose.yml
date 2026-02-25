@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     command: --no-half --no-half-vae --precision full --api --cuda-malloc # --enable-insecure-extension-access
+    devices:
+      - nvidia.com/gpu=all
     runtime: nvidia
     restart: "no"
     ports:

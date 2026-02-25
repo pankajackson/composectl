@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  stirling-pdf:
+    build:
+      context: .
+      args:
+        EXTRA_LANGS: "hin spa deu"
+    container_name: stirling-pdf    
+    networks:
+      - secure-network
+    ports:
+      - "8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stirling-pdf-http.rule=Host(`stpdf.lxa.com`)"
+      - "traefik.http.routers.stirling-pdf-http.entrypoints=web"
+      - "traefik.http.routers.stirling-pdf-https.rule=Host(`stpdf.linuxastra.in`)"
+      - "traefik.http.routers.stirling-pdf-https.entrypoints=websecure"
+      - "traefik.http.routers.stirling-pdf-https.tls=true"
+      - "traefik.http.routers.stirling-pdf-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.stirling-pdf-https.middlewares=authentik@file"
+    restart: unless-stopped
+
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

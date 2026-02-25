@@ -17,6 +17,8 @@ services:
       - "11434:11434"
     volumes:
       - /opt/storage/open-webui/ollama:/root/.ollama
+    devices:
+      - nvidia.com/gpu=all
     deploy:
       resources:
         reservations:
@@ -27,7 +29,7 @@ services:
       - secure-network
 
   watchtower:
-    image: containrrr/watchtower
+    image: nickfedor/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 300 open-webui ollama

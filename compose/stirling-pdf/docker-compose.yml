@@ -6,7 +6,19 @@ services:
       context: .
       args:
         EXTRA_LANGS: "hin spa deu"
-    container_name: stirling-pdf    
+    container_name: stirling-pdf
+    environment:
+      UI_LOGOSTYLE: modern
+      UI_APPNAMENAVBAR: LXA PDF Tools
+      SYSTEM_SHOWUPDATE: "true"
+      SYSTEM_SHOWUPDATEONLYADMIN: "true"
+      SECURITY_ENABLELOGIN: "true" # `false` to disable login
+      SYSTEM_DEFAULTLOCALE: "en_US"
+      SYSTEM_FILEUPLOADLIMIT: 500MB
+      JAVA_TOOL_OPTIONS: "-Xms512m -Xmx1g"
+      SYSTEM_FRONTENDURL: "https://stpdf.jackson.com"
+      SYSTEM_ENABLEMOBILESCANNER: "true"
+      SYSTEM_MOBILESCANNERSETTINGS_STRETCHTOFIT: true
     networks:
       - secure-network
     ports:
@@ -21,7 +33,6 @@ services:
       - "traefik.http.routers.stirling-pdf-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.stirling-pdf-https.middlewares=authentik@file"
     restart: unless-stopped
-
 
 networks:
   secure-network:

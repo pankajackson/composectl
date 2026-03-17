@@ -1,0 +1,24 @@
+version: "3"
+services:
+  samba:
+    image: dperson/samba
+    container_name: samba
+    ports:
+      - "139:139"
+      - "445:445"
+    volumes:
+      - /opt/storage/samba:/storage
+    environment:
+      - TZ=Asia/Kolkata
+    command: >
+      -s "public;/storage/public;yes;no;yes"
+      -s "private;/storage/private;yes;yes;no"
+      -u "jackson;password"
+    networks:
+      - secure-network
+    restart: unless-stopped
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

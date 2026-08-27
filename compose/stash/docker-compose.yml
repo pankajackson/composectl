@@ -1,0 +1,41 @@
+services:
+  stash:
+    image: ghcr.io/umputun/stash:v0.19.0
+    container_name: stash
+    restart: unless-stopped
+    command:
+      - /srv/stash
+      - server
+      - --db=/srv/data/stash.db
+      - --auth.file=/srv/data/stash-auth.yml
+      - --auth.hot-reload
+
+    # environment:
+    #   STASH_DB: postgres://stash:secret@postgres:5432/stash?sslmode=disable
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/srv/data
+      - ./config/stash-auth.yml:/srv/data/stash-auth.yml
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+
+#   postgres:
+#     image: postgres:16-alpine
+#     container_name: stash-postgres
+#     restart: unless-stopped
+#     environment:
+#       POSTGRES_USER: stash
+#       POSTGRES_PASSWORD: secret
+#       POSTGRES_DB: stash
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U stash -d stash"]
+#       interval: 5s
+#       timeout: 5s
+#       retries: 10
+
+# volumes:
+#   postgres_data:

@@ -4,14 +4,10 @@ services:
     container_name: stash
     restart: unless-stopped
 
-    command:
-      - /srv/stash
-      - server
-      - --auth.file=/srv/data/stash-auth.yml
-      - --auth.hot-reload
-
     environment:
       STASH_DB: postgres://stash:secret@postgres:5432/stash?sslmode=disable
+      STASH_AUTH_FILE: /srv/data/stash-auth.yml
+      STASH_AUTH_HOT_RELOAD: "true"
 
     ports:
       - "8080:8080"

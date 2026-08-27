@@ -15,3 +15,11 @@ services:
     volumes:
       - ./data:/srv/data
       - ./config/stash-auth.yml:/srv/data/stash-auth.yml
+
+    networks:
+      - "secure-network"
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

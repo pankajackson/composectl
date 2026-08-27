@@ -1,6 +1,6 @@
 users:
   - name: admin
-    password: "$2a$10$/yHH6LINfvMoCcFFj.ccPu0IhCfjbtBeKXR9Su624Xdscf9.I/j1e"  # bcrypt hash
+    password: "$2a$10$/yHH6LINfvMoCcFFj.ccPu0IhCfjbtBeKXR9Su624Xdscf9.I/j1e" # bcrypt hash
     permissions:
       - prefix: "*"
         access: rw
@@ -17,7 +17,7 @@ users:
 
 tokens:
   - token: "a4f8d9e2-7c3b-4a1f-9e2d-8c7b6a5f4e3d"
-    admin: true  # grants admin privileges (audit log access)
+    admin: true # grants admin privileges (audit log access)
     permissions:
       - prefix: "*"
         access: rw
@@ -25,3 +25,7 @@ tokens:
     permissions:
       - prefix: "*"
         access: r
+  - token: "3c33f60846029b22842d1eb2f6340ea3e2dc6cb497ef6259bc04fb2acb06339f"
+    permissions:
+      - prefix: "*"
+        access: rw

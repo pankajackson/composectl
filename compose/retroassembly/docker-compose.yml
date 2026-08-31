@@ -1,0 +1,15 @@
+services:
+  retroassembly:
+    image: arianrhodsandlot/retroassembly
+    ports: [8000:8000]
+    volumes: 
+      - /opt/storage/retroassembly/data:/app/data
+    restart: unless-stopped
+    networks:
+      - secure-network
+
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

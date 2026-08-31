@@ -1,0 +1,102 @@
+# WAHA (WhatsApp HTTP API) — GOWS engine, standalone deployment
+# Works on both amd64 (Linux servers/NAS) and arm64 (Apple Silicon Mac,
+# Raspberry Pi, AWS Graviton) — WAHA doesn't publish a combined
+# multi-arch manifest under :latest, so the image tag is picked via the
+# WAHA_IMAGE variable below rather than hardcoded.
+#
+# Docs: https://waha.devlike.pro/docs/how-to/install/
+# Engines: https://waha.devlike.pro/docs/how-to/engines/
+#
+# Quick start:
+#   1. cp .env.example .env
+#      - Set WAHA_IMAGE=devlikeapro/waha:latest   (Linux/amd64 servers)
+#        or WAHA_IMAGE=devlikeapro/waha:arm        (Apple Silicon Mac, ARM)
+#      - Fill in a strong WAHA_API_KEY
+#   2. docker compose up -d
+#   3. Open http://<server-ip>:3000/dashboard (or /swagger for API docs)
+#   4. Create a session, scan the QR code with WhatsApp, then point n8n's
+#      HTTP Request node (or the WAHA webhook) at this container.
+
+services:
+  waha:
+    image: ${WAHA_IMAGE:-devlikeapro/waha:latest}
+    container_name: waha
+    restart: unless-stopped
+
+    # GOWS talks to WhatsApp over a raw WebSocket. Some Docker/host DNS
+    # setups fail to resolve WhatsApp's endpoints, which shows up as
+    # session-start timeouts — pinning public resolvers avoids that.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
+    ports:
+      # Exposed on all interfaces since you're not joining it to the n8n
+      # network. Put this behind a firewall / reverse proxy if it's
+      # reachable from the internet — WAHA_API_KEY alone isn't enough.
+      - "3000:3000"
+
+    env_file:
+      - ./.env
+
+    environment:
+      # ---- Engine ----
+      WHATSAPP_DEFAULT_ENGINE: GOWS
+      # Keeps sessions under one namespace so you can switch engines later
+      # (e.g. GOWS -> NOWEB) without losing the session list.
+      WAHA_NAMESPACE: all
+
+      # ---- Security ----
+      # Every request must send this as the X-Api-Key header (or
+      # ?x-api-key= query param). Set the real value in .env.
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      WHATSAPP_SWAGGER_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WHATSAPP_SWAGGER_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      WAHA_DASHBOARD_ENABLED: "True"
+      WHATSAPP_SWAGGER_ENABLED: "True"
+
+      # ---- Webhook (n8n) ----
+      # Point this at your n8n Webhook node URL to receive incoming
+      # messages/events. Comma-separate multiple URLs if needed.
+      WHATSAPP_HOOK_URL: ${N8N_WEBHOOK_URL}
+      WHATSAPP_HOOK_EVENTS: message
+
+      # ---- Logging ----
+      WAHA_LOG_FORMAT: PRETTY
+      WAHA_LOG_LEVEL: info
+      WAHA_PRINT_QR: "False"
+
+      # ---- Reliability ----
+      # Auto-restart any session that was WORKING before a container
+      # restart, instead of sitting idle until you hit /start manually.
+      WHATSAPP_RESTART_ALL_SESSIONS: "True"
+
+    volumes:
+      # Session/auth data — REQUIRED to persist, or you rescan the QR
+      # code every time the container restarts.
+      - ./sessions:/app/.sessions
+      # Downloaded media (images/audio/docs from chats).
+      - ./media:/app/.media
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/server/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+
+    networks: ['secure-network']
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

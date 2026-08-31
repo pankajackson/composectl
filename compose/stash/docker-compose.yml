@@ -1,0 +1,25 @@
+services:
+  stash:
+    image: ghcr.io/umputun/stash:v0.19.0
+    container_name: stash
+    restart: unless-stopped
+
+    environment:
+      STASH_DB: /srv/data/stash.db
+      STASH_AUTH_FILE: /srv/data/stash-auth.yml
+      STASH_AUTH_HOT_RELOAD: "true"
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./data:/srv/data
+      - ./config/stash-auth.yml:/srv/data/stash-auth.yml
+
+    networks:
+      - "secure-network"
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

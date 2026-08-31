@@ -1,0 +1,43 @@
+# Credential template
+#
+# Generate BCrypt password hashes and tokens using:
+#   ./script/generate-creds.sh
+#
+# Replace the placeholders below with the generated credentials.
+# DO NOT commit the generated credentials to Git.
+
+users:
+  - name: admin
+    password: "<ADMIN_USER_BCRYPT_HASH>" # bcrypt hash
+    permissions:
+      - prefix: "*"
+        access: rw
+
+  - name: readonly
+    password: "<READONLY_USER_BCRYPT_HASH>"
+    permissions:
+      - prefix: "*"
+        access: r
+
+  - name: n8n
+    password: "<N8N_USER_BCRYPT_HASH>"
+    permissions:
+      - prefix: "n8n/*"
+        access: rw
+
+tokens:
+  - token: "<ADMIN_TOKEN>"
+    admin: true # grants admin privileges (audit log access)
+    permissions:
+      - prefix: "*"
+        access: rw
+
+  - token: "<READONLY_TOKEN>"
+    permissions:
+      - prefix: "*"
+        access: r
+
+  - token: "<N8N_TOKEN>"
+    permissions:
+      - prefix: "n8n/*"
+        access: rw

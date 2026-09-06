@@ -1,16 +1,17 @@
 x-n8n: &service-n8n
   image: n8nio/n8n:stable
-  networks: ['secure-network']
+  networks:
+    - secure-network
   environment:
-    - DB_TYPE=postgresdb
-    - DB_POSTGRESDB_HOST=postgres
-    - DB_POSTGRESDB_USER=${POSTGRES_USER}
-    - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
-    - N8N_DIAGNOSTICS_ENABLED=false
-    - N8N_PERSONALIZATION_ENABLED=false
-    - N8N_ENCRYPTION_KEY
-    - N8N_USER_MANAGEMENT_JWT_SECRET
-    - OLLAMA_HOST=${OLLAMA_HOST}
+    DB_TYPE: postgresdb
+    DB_POSTGRESDB_HOST: postgres
+    DB_POSTGRESDB_USER: ${POSTGRES_USER}
+    DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+    N8N_DIAGNOSTICS_ENABLED: "false"
+    N8N_PERSONALIZATION_ENABLED: "false"
+    N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+    N8N_USER_MANAGEMENT_JWT_SECRET: ${N8N_USER_MANAGEMENT_JWT_SECRET}
+    OLLAMA_HOST: ${OLLAMA_HOST}
   env_file:
     - path: .env
       required: true
@@ -20,16 +21,19 @@ services:
     image: postgres:16-alpine
     hostname: postgres
     container_name: n8n-postgres
-    networks: ['secure-network']
+    networks:
+      - secure-network
     restart: unless-stopped
     environment:
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-      - POSTGRES_DB
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - /opt/storage/n8n/data/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      test:
+        - CMD-SHELL
+        - pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}
       interval: 5s
       timeout: 5s
       retries: 10
@@ -60,12 +64,12 @@ services:
     container_name: n8n
     restart: unless-stopped
     ports:
-      - 5678:5678
+      - "5678:5678"
     environment:
-      - N8N_RUNNERS_ENABLED=true
-      - N8N_RUNNERS_MODE=external
-      - N8N_RUNNERS_BROKER_LISTEN_ADDRESS=0.0.0.0
-      - N8N_RUNNERS_AUTH_TOKEN=${N8N_RUNNERS_AUTH_TOKEN}
+      N8N_RUNNERS_ENABLED: "true"
+      N8N_RUNNERS_MODE: external
+      N8N_RUNNERS_BROKER_LISTEN_ADDRESS: 0.0.0.0
+      N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     volumes:
       - ./n8n/demo-data:/demo-data
       - /opt/storage/n8n/data/n8n:/home/node/.n8n
@@ -77,15 +81,33 @@ services:
         condition: service_completed_successfully
 
   task-runners:
-    image: n8nio/runners:stable
+    build:
+      context: ./runner
+      dockerfile: Dockerfile
+      args:
+        N8N_RUNNERS_PYTHON_PACKAGES: ${N8N_RUNNERS_PYTHON_PACKAGES}
+        N8N_RUNNERS_NODE_PACKAGES: ${N8N_RUNNERS_NODE_PACKAGES}
+
+        N8N_RUNNERS_STDLIB_ALLOW: ${N8N_RUNNERS_STDLIB_ALLOW}
+        N8N_RUNNERS_EXTERNAL_ALLOW: ${N8N_RUNNERS_EXTERNAL_ALLOW}
+
+        N8N_RUNNERS_NODE_BUILTIN_ALLOW: ${N8N_RUNNERS_NODE_BUILTIN_ALLOW}
+        N8N_RUNNERS_NODE_EXTERNAL_ALLOW: ${N8N_RUNNERS_NODE_EXTERNAL_ALLOW}
+    image: n8nio/runners:lxa
+    hostname: n8n-runners
     container_name: n8n-runners
-    networks: ['secure-network']
+    networks:
+      - secure-network
     restart: unless-stopped
+    env_file:
+      - path: .env
+        required: true
     environment:
-      - N8N_RUNNERS_TASK_BROKER_URI=http://n8n:5679
-      - N8N_RUNNERS_AUTH_TOKEN=${N8N_RUNNERS_AUTH_TOKEN}
+      N8N_RUNNERS_TASK_BROKER_URI: http://n8n:5679
+      N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     depends_on:
-      - n8n
+      n8n:
+        condition: service_started
 
   # qdrant:
   #   image: qdrant/qdrant

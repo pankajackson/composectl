@@ -134,7 +134,6 @@ services:
     networks:
       - secure-network
     restart: unless-stopped
-    user: "0:0"
     cap_drop:
       - ALL
     cap_add:

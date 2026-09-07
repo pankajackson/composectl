@@ -134,10 +134,12 @@ services:
     networks:
       - secure-network
     restart: unless-stopped
+    user: "0:0"
     cap_drop:
       - ALL
     cap_add:
       - CHOWN
+      - FOWNER
       - SETUID
       - SETGID
       - DAC_OVERRIDE
@@ -146,6 +148,7 @@ services:
       - no-new-privileges:true
     volumes:
       - ./shell-executor/authorized_keys:/home/n8n-runner/.ssh/authorized_keys.ro:ro
+      - ./shell-executor/keys/executor_key:/run/secrets/executor_key.ro:ro
       - ./shell-executor/allowed-commands.txt:/etc/shell-executor/allowed-commands.txt:ro
       - /opt/storage/n8n/data/shell-executor/host-keys:/etc/ssh-host-keys
       - /opt/storage/n8n/data/shared:/data/shared:ro

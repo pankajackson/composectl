@@ -4,6 +4,7 @@ FROM debian:bookworm-slim
 # Example: RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg imagemagick curl jq
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server \
+    openssh-sftp-server \
     bash \
     git \
     curl \

@@ -150,6 +150,7 @@ services:
       - ./shell-executor/keys/executor_key:/run/secrets/executor_key.ro:ro
       - ./shell-executor/allowed-commands.txt:/etc/shell-executor/allowed-commands.txt:ro
       - /opt/storage/n8n/data/shell-executor/host-keys:/etc/ssh-host-keys
+      - /opt/storage/n8n/data/shell-executor/workspace:/workspace
       - /opt/storage/n8n/data/shared:/data/shared:ro
     depends_on:
       n8n:
@@ -169,7 +170,6 @@ services:
   #     - 6333:6333
   #   volumes:
   #     - /opt/storage/n8n/data/qdrant:/qdrant/storage
-
 
 networks:
   secure-network:

@@ -27,8 +27,10 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 KEY_DIR="keys"
+HOST_KEY_DIR="host-keys"
 
 mkdir -p "$KEY_DIR"
+mkdir -p "$HOST_KEY_DIR"
 chmod 700 "$KEY_DIR"
 
 

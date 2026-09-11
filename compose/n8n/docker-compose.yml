@@ -1,8 +1,12 @@
+x-common-env: &common-env
+  TZ: Asia/Kolkata
+
 x-n8n: &service-n8n
   image: n8nio/n8n:stable
   networks:
     - secure-network
   environment:
+    <<: *common-env
     DB_TYPE: postgresdb
     DB_POSTGRESDB_HOST: postgres
     DB_POSTGRESDB_USER: ${POSTGRES_USER}
@@ -25,6 +29,7 @@ services:
       - secure-network
     restart: unless-stopped
     environment:
+      <<: *common-env
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -74,6 +79,7 @@ services:
     ports:
       - "5678:5678"
     environment:
+      <<: *common-env
       N8N_RUNNERS_ENABLED: "true"
       N8N_RUNNERS_MODE: external
       N8N_RUNNERS_BROKER_LISTEN_ADDRESS: 0.0.0.0
@@ -115,6 +121,7 @@ services:
       - path: .env
         required: true
     environment:
+      <<: *common-env
       N8N_RUNNERS_TASK_BROKER_URI: http://n8n:5679
       N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     depends_on:
@@ -130,10 +137,12 @@ services:
       context: ./shell-executor
       dockerfile: Dockerfile
     hostname: shell-executor
-    container_name: shell-executor
+    container_name: n8n-shell-executor
     networks:
       - secure-network
     restart: unless-stopped
+    environment:
+      <<: *common-env
     cap_drop:
       - ALL
     cap_add:

@@ -1,5 +1,6 @@
 x-common-env: &common-env
   TZ: Asia/Kolkata
+  GENERIC_TIMEZONE: Asia/Kolkata
 
 x-n8n: &service-n8n
   image: n8nio/n8n:stable

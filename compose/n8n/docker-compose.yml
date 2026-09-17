@@ -1,8 +1,13 @@
+x-common-env: &common-env
+  TZ: Asia/Kolkata
+  GENERIC_TIMEZONE: Asia/Kolkata
+
 x-n8n: &service-n8n
   image: n8nio/n8n:stable
   networks:
     - secure-network
   environment:
+    <<: *common-env
     DB_TYPE: postgresdb
     DB_POSTGRESDB_HOST: postgres
     DB_POSTGRESDB_USER: ${POSTGRES_USER}
@@ -25,6 +30,7 @@ services:
       - secure-network
     restart: unless-stopped
     environment:
+      <<: *common-env
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -37,6 +43,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    mem_limit: 512m
+    mem_reservation: 256m
+    cpus: "1.0"
+    pids_limit: 200
 
   n8n-import:
     <<: *service-n8n
@@ -57,6 +67,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    mem_limit: 256m
+    mem_reservation: 64m
+    cpus: "0.50"
+    pids_limit: 100
 
   n8n:
     <<: *service-n8n
@@ -66,6 +80,7 @@ services:
     ports:
       - "5678:5678"
     environment:
+      <<: *common-env
       N8N_RUNNERS_ENABLED: "true"
       N8N_RUNNERS_MODE: external
       N8N_RUNNERS_BROKER_LISTEN_ADDRESS: 0.0.0.0
@@ -79,6 +94,10 @@ services:
         condition: service_healthy
       n8n-import:
         condition: service_completed_successfully
+    mem_limit: 1g
+    mem_reservation: 512m
+    cpus: "1.5"
+    pids_limit: 512
 
   task-runners:
     build:
@@ -103,11 +122,53 @@ services:
       - path: .env
         required: true
     environment:
+      <<: *common-env
       N8N_RUNNERS_TASK_BROKER_URI: http://n8n:5679
       N8N_RUNNERS_AUTH_TOKEN: ${N8N_RUNNERS_AUTH_TOKEN}
     depends_on:
       n8n:
         condition: service_started
+    mem_limit: 512m
+    mem_reservation: 256m
+    cpus: "1.0"
+    pids_limit: 256
+
+  shell-executor:
+    build:
+      context: ./shell-executor
+      dockerfile: Dockerfile
+    hostname: shell-executor
+    container_name: n8n-shell-executor
+    networks:
+      - secure-network
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+      - SYS_CHROOT
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./shell-executor/authorized_keys:/home/n8n-runner/.ssh/authorized_keys.ro:ro
+      - ./shell-executor/keys/executor_key:/run/secrets/executor_key.ro:ro
+      - ./shell-executor/allowed-commands.txt:/etc/shell-executor/allowed-commands.txt:ro
+      - /opt/storage/n8n/data/shell-executor/host-keys:/etc/ssh-host-keys
+      - /opt/storage/n8n/data/shell-executor/workspace:/workspace
+      - /opt/storage/n8n/data/shared:/data/shared:ro
+    depends_on:
+      n8n:
+        condition: service_started
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: "0.50"
+    pids_limit: 64
 
   # qdrant:
   #   image: qdrant/qdrant
@@ -119,7 +180,6 @@ services:
   #     - 6333:6333
   #   volumes:
   #     - /opt/storage/n8n/data/qdrant:/qdrant/storage
-
 
 networks:
   secure-network:

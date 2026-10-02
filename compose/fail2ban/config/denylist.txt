@@ -1,0 +1,2 @@
+# One IPv4 address or CIDR per line. Entries are dropped in DOCKER-USER on startup.
+# Restart Fail2ban after editing this file.

@@ -1,0 +1,18 @@
+[DEFAULT]
+bantime = 1h
+findtime = 10m
+maxretry = 5
+backend = auto
+banaction = iptables-multiport
+chain = DOCKER-USER
+ignorecommand = /config/allowlist-check.sh <ip>
+
+[traefik-auth]
+enabled = true
+filter = traefik-auth
+logpath = /remotelogs/traefik/access.log
+port = http,https
+protocol = tcp
+maxretry = 5
+findtime = 10m
+bantime = 1h

@@ -2,7 +2,13 @@ global:
   checkNewVersion: false
   sendAnonymousUsage: false
 
-accessLog: {}
+accessLog:
+  filePath: "/logs/access.log"
+  format: json
+  filters:
+    statusCodes:
+      - "401-404"
+      - "429"
 
 log:
   level: DEBUG

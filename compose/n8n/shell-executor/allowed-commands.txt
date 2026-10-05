@@ -68,3 +68,4 @@ id
 whoami
 hostname
 uname
+vault

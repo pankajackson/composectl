@@ -17,12 +17,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     tar \
     gzip \
+    gnupg \
     coreutils \
     findutils \
     grep \
     sed \
     gawk \
     procps \
+    && install -d -m 0755 /usr/share/keyrings \
+    && curl -fsSL https://apt.releases.hashicorp.com/gpg -o /tmp/hashicorp-archive-keyring.asc \
+    && gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg /tmp/hashicorp-archive-keyring.asc \
+    && chmod 644 /usr/share/keyrings/hashicorp-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com bookworm main" \
+        > /etc/apt/sources.list.d/hashicorp.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends vault \
+    && rm -f /tmp/hashicorp-archive-keyring.asc \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/run/sshd
 

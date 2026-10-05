@@ -1,0 +1,23 @@
+services:
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    restart: unless-stopped
+    # The image entrypoint already loads every config file in /vault/config.
+    # Passing the individual file as well loads the listener twice.
+    command: server
+    cap_add:
+      - IPC_LOCK
+    ports:
+      # Local host access only; other containers can reach Vault on port 8200.
+      - "127.0.0.1:8200:8200"
+    volumes:
+      - /opt/storage/vault/data:/vault/data
+      - ./config/vault.hcl:/vault/config/vault.hcl:ro
+    networks:
+      - secure-network
+
+networks:
+  secure-network:
+    external: true
+    name: ${CONTAINER_NETWORK}

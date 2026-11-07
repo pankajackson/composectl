@@ -1,6 +1,6 @@
 # Aliases you call from clients:
-#   local        -> Ollama on your GPU (falls back to "smart" on error / overload / long context)
-#   smart        -> free cloud pool, tried in priority order (order 1 first), falls back to local
+#   local        -> Ollama on your GPU only (never sends requests to a cloud provider)
+#   smart        -> configured cloud pool, tried in priority order, falls back to local
 #   gemini-flash, groq-gpt-oss-120b -> pick one provider directly
 #   local-embed  -> embeddings (Ollama)
 # Edit model names to match what is currently free on each provider.
@@ -62,13 +62,9 @@ router_settings:
   allowed_fails: 2 # rate-limited provider is skipped for cooldown_time
   cooldown_time: 60
   fallbacks:
-    - local: ["smart"]
     - smart: ["local"]
     - gemini-flash: ["smart"]
     - groq-gpt-oss-120b: ["smart"]
-  context_window_fallbacks:
-    - local: ["smart"]
-
 litellm_settings:
   drop_params: true
   # Greeting short-circuit + "never cache tool calls" (see greeting_hook.py)

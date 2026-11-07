@@ -1,0 +1,24 @@
+# Tabby runs no model itself here: it calls Ollama over HTTP, so it needs no GPU
+# access of its own. Pull the models first:
+#   docker exec -it local-ai-ollama-1 ollama pull qwen2.5-coder:1.5b-base
+#   docker exec -it local-ai-ollama-1 ollama pull nomic-embed-text
+
+# Code completion (fill-in-the-middle). A small base model keeps autocomplete fast
+# and leaves VRAM for the main chat model.
+[model.completion.http]
+kind = "ollama/completion"
+model_name = "qwen2.5-coder:1.5b-base"
+api_endpoint = "http://ollama:11434"
+prompt_template = "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>"
+
+# Chat in the IDE. Goes straight to Ollama (no cloud fallback).
+[model.chat.http]
+kind = "openai/chat"
+model_name = "qwen3:14b"
+api_endpoint = "http://ollama:11434/v1"
+
+# Embeddings for repository context
+[model.embedding.http]
+kind = "ollama/embedding"
+model_name = "nomic-embed-text"
+api_endpoint = "http://ollama:11434"

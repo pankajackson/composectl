@@ -1,0 +1,192 @@
+name: local-ai
+
+# ---------------------------------------------------------------------------
+# Modules (Compose profiles):
+#   (no profile)  core: postgres, redis, ollama, litellm, open-webui  -> always on
+#   comfy         ComfyUI (image/video generation)                    -> on demand
+#   tabby         TabbyML (code completion + chat for your IDE)       -> on demand
+#   voice         faster-whisper (STT) + Piper (TTS), Wyoming protocol -> on demand
+#
+#   docker compose up -d                          # core only
+#   docker compose --profile comfy up -d          # core + ComfyUI
+#   docker compose --profile comfy --profile tabby --profile voice up -d
+#   docker compose stop comfyui                   # turn ComfyUI off, frees VRAM
+#
+# Or set COMPOSE_PROFILES=voice,tabby in .env to enable modules by default.
+# ---------------------------------------------------------------------------
+
+x-gpu: &gpu
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+services:
+  # ------------------------------ CORE ------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: litellm
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: litellm
+    volumes:
+      - ${DATA_DIR:-./data}/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: >
+      redis-server --requirepass ${REDIS_PASSWORD}
+      --maxmemory 256mb --maxmemory-policy allkeys-lru --save ""
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:${OLLAMA_TAG:-latest} # Blackwell (5060 Ti) needs a recent Ollama
+    restart: unless-stopped
+    <<: *gpu
+    ports:
+      - "11434:11434"
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-3m} # short, so VRAM is freed for ComfyUI
+      OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-2}
+      OLLAMA_NUM_PARALLEL: 2
+      OLLAMA_FLASH_ATTENTION: 1
+      OLLAMA_KV_CACHE_TYPE: q8_0
+    volumes:
+      - ${DATA_DIR:-./data}/ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  litellm:
+    image: ghcr.io/berriai/litellm:${LITELLM_TAG:-main-stable}
+    restart: unless-stopped
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    ports:
+      - "4000:4000"
+    environment:
+      TZ: ${TZ:-Asia/Kolkata}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      DATABASE_URL: postgresql://litellm:${POSTGRES_PASSWORD}@postgres:5432/litellm
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      CEREBRAS_API_KEY: ${CEREBRAS_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+      - ./litellm/greeting_hook.py:/app/greeting_hook.py:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:4000/health/liveliness')",
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:${WEBUI_TAG:-main}
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    environment:
+      TZ: ${TZ:-Asia/Kolkata}
+      OPENAI_API_BASE_URL: http://litellm:4000/v1
+      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
+      ENABLE_OLLAMA_API: "false" # everything goes through LiteLLM
+      TASK_MODEL_EXTERNAL: local # title/tag generation stays on the local model
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY}
+    volumes:
+      - ${DATA_DIR:-./data}/open-webui:/app/backend/data
+    depends_on:
+      litellm:
+        condition: service_healthy
+
+  # ------------------------------ COMFY -----------------------------------
+  comfyui:
+    profiles: ["comfy"]
+    image: yanwk/comfyui-boot:${COMFY_TAG:-cu128-slim} # Blackwell needs CUDA 12.8+ builds
+    restart: unless-stopped
+    <<: *gpu
+    ports:
+      - "8188:8188"
+    shm_size: 4gb
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      CLI_ARGS: ${COMFY_ARGS:-} # e.g. --lowvram if you hit out-of-memory errors
+    volumes:
+      - ${DATA_DIR:-./data}/comfyui:/root
+
+  # ------------------------------ TABBY -----------------------------------
+  tabby:
+    profiles: ["tabby"]
+    image: tabbyml/tabby:${TABBY_TAG:-latest}
+    restart: unless-stopped
+    command: ["serve"] # models come from tabby/config.toml (served by Ollama)
+    ports:
+      - "8081:8080"
+    environment:
+      TABBY_ROOT: /data
+      TABBY_DISABLE_USAGE_COLLECTION: 1
+    volumes:
+      - ${DATA_DIR:-./data}/tabby:/data
+      - ./tabby/config.toml:/data/config.toml:ro
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  # ------------------------------ VOICE -----------------------------------
+  whisper:
+    profiles: ["voice"]
+    image: rhasspy/wyoming-whisper:${WHISPER_TAG:-latest}
+    restart: unless-stopped
+    command: ["--model", "small-int8", "--language", "en"] # CPU by default, keeps VRAM free
+    ports:
+      - "10300:10300"
+    volumes:
+      - ${DATA_DIR:-./data}/whisper:/data
+
+  piper:
+    profiles: ["voice"]
+    image: rhasspy/wyoming-piper:${PIPER_TAG:-latest}
+    restart: unless-stopped
+    command: ["--voice", "en_US-lessac-medium"]
+    ports:
+      - "10200:10200"
+    volumes:
+      - ${DATA_DIR:-./data}/piper:/data

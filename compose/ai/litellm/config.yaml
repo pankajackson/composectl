@@ -1,75 +1,53 @@
-# Aliases you call from clients:
-#   local        -> Ollama on your GPU only (never sends requests to a cloud provider)
-#   smart        -> configured cloud pool, tried in priority order, falls back to local
-#   gemini-flash, groq-gpt-oss-120b -> pick one provider directly
-#   local-embed  -> embeddings (Ollama)
-# Edit model names to match what is currently free on each provider.
-
 model_list:
-  # ------------------------------ LOCAL ------------------------------------
-  - model_name: local
+  - model_name: qwen3-14b
     litellm_params:
-      model: ollama_chat/qwen3:14b # fits 16 GB; use qwen3:8b on 8 GB
+      model: ollama_chat/qwen3:14b
       api_base: http://ollama:11434
+      max_tokens: 8192
 
-  - model_name: local-embed
+  - model_name: gpt-oss-20b
     litellm_params:
-      model: ollama/nomic-embed-text
+      model: ollama_chat/gpt-oss:20b
       api_base: http://ollama:11434
+      max_tokens: 8192
 
-  # ------------------------- DIRECT CLOUD ALIASES --------------------------
-  - model_name: gemini-flash
+  - model_name: starcoder-1b
+    litellm_params:
+      model: ollama/starcoder:1b
+      api_base: http://ollama:11434
+      max_tokens: 8192
+
+  - model_name: gemini-2.5-flash
     litellm_params:
       model: gemini/gemini-2.5-flash
       api_key: os.environ/GEMINI_API_KEY
+      max_tokens: 8192
 
   - model_name: groq-gpt-oss-120b
     litellm_params:
       model: groq/openai/gpt-oss-120b
       api_key: os.environ/GROQ_API_KEY
+      max_tokens: 8192
+      timeout: 300
 
-  # ------------------------ "smart" = ordered cloud pool -------------------
+  # Auto Router uses LiteLLM's built-in complexity classifier. It doesn't need
+  # a separate classifier API key; use the tiers as the routing policy.
   - model_name: smart
     litellm_params:
-      model: gemini/gemini-2.5-flash
-      api_key: os.environ/GEMINI_API_KEY
-      order: 1
-  - model_name: smart
-    litellm_params:
-      model: groq/openai/gpt-oss-120b
-      api_key: os.environ/GROQ_API_KEY
-      order: 2
-  - model_name: smart
-    litellm_params:
-      model: cerebras/gpt-oss-120b
-      api_key: os.environ/CEREBRAS_API_KEY
-      order: 3
-  - model_name: smart
-    litellm_params:
-      model: openrouter/meta-llama/llama-3.3-70b-instruct:free
-      api_key: os.environ/OPENROUTER_API_KEY
-      order: 4
-  - model_name: smart
-    litellm_params:
-      model: mistral/mistral-small-latest
-      api_key: os.environ/MISTRAL_API_KEY
-      order: 5
+      model: auto_router/complexity_router
+      complexity_router_config:
+        tiers:
+          SIMPLE: gpt-oss-20b
+          MEDIUM: gemini-2.5-flash
+          COMPLEX: groq-gpt-oss-120b
+          REASONING: gemini-2.5-flash
+        classifier_type: heuristic
+        classifier_fallback: default_model
+        return_raw_model_name: true
+      complexity_router_default_model: qwen3-14b
 
-router_settings:
-  routing_strategy: simple-shuffle
-  num_retries: 1
-  timeout: 90
-  allowed_fails: 2 # rate-limited provider is skipped for cooldown_time
-  cooldown_time: 60
-  fallbacks:
-    - smart: ["local"]
-    - gemini-flash: ["smart"]
-    - groq-gpt-oss-120b: ["smart"]
 litellm_settings:
   drop_params: true
-  # Greeting short-circuit + "never cache tool calls" (see greeting_hook.py)
-  callbacks: greeting_hook.proxy_handler_instance
-  # Exact-match cache. Clients can bypass it per request with: "cache": {"no-cache": true}
   cache: true
   cache_params:
     type: redis
@@ -78,7 +56,15 @@ litellm_settings:
     password: os.environ/REDIS_PASSWORD
     ttl: 3600
     supported_call_types:
-      ["acompletion", "completion", "aembedding", "embedding"]
+      [
+        "acompletion",
+        "completion",
+        "atext_completion",
+        "aembedding",
+        "embedding",
+        "atranscription",
+        "aresponses",
+      ]
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY

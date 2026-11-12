@@ -14,6 +14,7 @@ model_list:
       mode: chat
       input_cost_per_token: 0
       output_cost_per_token: 0
+      # supports_function_calling: true
 
   - model_name: qwen3-14b
     litellm_params:
@@ -65,6 +66,12 @@ model_list:
       max_tokens: 8192
       timeout: 300
 
+  # ---- Classifire Model ---
+  - model_name: classifire-model
+    litellm_params:
+      model: ollama_chat/gemma4:e2b
+      api_base: http://ollama:11434
+
   # ---- Auto router ----
   - model_name: smart
     litellm_params:
@@ -75,8 +82,16 @@ model_list:
           MEDIUM: qwen3-14b
           COMPLEX: gemini-2.5-flash
           REASONING: groq-gpt-oss-120b
-        classifier_type: heuristic
+        classifier_type: llm
+
+        classifier_llm_config:
+          model: classifire-model
+          timeout_ms: 5000
+
+        classifier_fallback: heuristic
         session_affinity: false
+        return_raw_model_name: true
+
       complexity_router_default_model: small-local
 
 router_settings:

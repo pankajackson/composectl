@@ -1,22 +1,57 @@
 model_list:
+  # ---- Local (Ollama) ----
+  - model_name: small-local
+    litellm_params:
+      model: ollama_chat/qwen3:4b-instruct
+      api_base: http://ollama:11434
+      max_tokens: 4096
+      num_ctx: 8192
+      keep_alive: "30m"
+    model_info:
+      max_input_tokens: 8192
+      max_output_tokens: 4096
+      max_tokens: 4096
+      mode: chat
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+
   - model_name: qwen3-14b
     litellm_params:
       model: ollama_chat/qwen3:14b
       api_base: http://ollama:11434
       max_tokens: 8192
-
-  - model_name: gpt-oss-20b
-    litellm_params:
-      model: ollama_chat/gpt-oss:20b
-      api_base: http://ollama:11434
+      num_ctx: 8192
+      keep_alive: "30m"
+    model_info:
+      max_input_tokens: 8192
+      max_output_tokens: 8192
       max_tokens: 8192
+      mode: chat
+      input_cost_per_token: 0
+      output_cost_per_token: 0
 
-  - model_name: starcoder-1b
+  # Autocomplete (FIM). Uses the /api/generate endpoint, hence "ollama/" and not "ollama_chat/".
+  # Optional: Continue can call Ollama directly instead (see below).
+  - model_name: coder-autocomplete
     litellm_params:
       model: ollama/starcoder:1b
       api_base: http://ollama:11434
-      max_tokens: 8192
+      max_tokens: 128 # becomes num_predict; 64-128 is plenty for FIM
+      temperature: 0.1 # near-deterministic suits code completion
+      top_p: 0.9
+      num_ctx: 4096 # smaller KV cache, faster prompt processing
+      keep_alive: -1 # never unload
+      timeout: 10 # a stale suggestion is useless
+      num_retries: 0 # don't retry autocomplete requests
+    model_info:
+      max_input_tokens: 4096
+      max_output_tokens: 128
+      max_tokens: 128
+      mode: completion
+      input_cost_per_token: 0
+      output_cost_per_token: 0
 
+  # ---- Cloud ----
   - model_name: gemini-2.5-flash
     litellm_params:
       model: gemini/gemini-2.5-flash
@@ -30,21 +65,27 @@ model_list:
       max_tokens: 8192
       timeout: 300
 
-  # Auto Router uses LiteLLM's built-in complexity classifier. It doesn't need
-  # a separate classifier API key; use the tiers as the routing policy.
+  # ---- Auto router ----
   - model_name: smart
     litellm_params:
       model: auto_router/complexity_router
       complexity_router_config:
         tiers:
-          SIMPLE: gpt-oss-20b
-          MEDIUM: gemini-2.5-flash
-          COMPLEX: groq-gpt-oss-120b
-          REASONING: gemini-2.5-flash
+          SIMPLE: small-local
+          MEDIUM: qwen3-14b
+          COMPLEX: gemini-2.5-flash
+          REASONING: groq-gpt-oss-120b
         classifier_type: heuristic
-        classifier_fallback: default_model
-        return_raw_model_name: true
-      complexity_router_default_model: qwen3-14b
+        session_affinity: false
+      complexity_router_default_model: small-local
+
+router_settings:
+  num_retries: 2
+  timeout: 120
+  fallbacks:
+    - groq-gpt-oss-120b: [gemini-2.5-flash]
+    - gemini-2.5-flash: [qwen3-14b]
+    - qwen3-14b: [small-local]
 
 litellm_settings:
   drop_params: true

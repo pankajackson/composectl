@@ -146,6 +146,10 @@ litellm_settings:
         "atranscription",
         "aresponses",
       ]
+  ui_theme_config:
+    logo_url: "https://archhurd.org/static/logos/archlinux-logo-dark-1200dpi.png"
+    logo_url_dark: "https://archhurd.org/static/logos/archlinux-logo-black-1200dpi.png"
+    favicon_url: "https://archlinux.org/static/favicon.png"
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
@@ -153,10 +157,9 @@ general_settings:
   store_model_in_db: true
   supported_db_objects:
     - mcp
-  # dangerously_allow_mock_testing_request_params: true # Enable Routing/fallbacks Test from UI 
+  # dangerously_allow_mock_testing_request_params: true # Enable Routing/fallbacks Test from UI
 
-
-# ----- MCP Servers ----- 
+# ----- MCP Servers -----
 mcp_servers:
   # Local filesystem
   filesystem:

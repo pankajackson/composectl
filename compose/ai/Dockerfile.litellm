@@ -1,0 +1,21 @@
+FROM ghcr.io/berriai/litellm:v1.108.6-lts
+
+USER root
+
+# Install npm without requiring apk packages
+RUN python3 -c "import urllib.request; urllib.request.urlretrieve('https://registry.npmjs.org/npm/-/npm-10.9.4.tgz', '/tmp/npm.tgz')" \
+    && mkdir -p /usr/local/lib/node_modules/npm \
+    && tar -xzf /tmp/npm.tgz -C /usr/local/lib/node_modules/npm --strip-components=1 \
+    && ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && rm /tmp/npm.tgz
+
+# Install uv and uvx as separate executables
+RUN python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com/astral-sh/uv/releases/download/0.9.5/uv-x86_64-unknown-linux-musl.tar.gz', '/tmp/uv.tar.gz')" \
+    && tar -xzf /tmp/uv.tar.gz -C /tmp \
+    && install -m 0755 /tmp/uv-x86_64-unknown-linux-musl/uv /usr/local/bin/uv \
+    && install -m 0755 /tmp/uv-x86_64-unknown-linux-musl/uvx /usr/local/bin/uvx \
+    && rm -rf /tmp/uv.tar.gz /tmp/uv-x86_64-unknown-linux-musl
+
+
+ENV PATH="/usr/local/bin:/usr/bin:${PATH}"

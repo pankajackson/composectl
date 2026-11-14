@@ -75,7 +75,11 @@ services:
       retries: 10
 
   litellm:
-    image: ghcr.io/berriai/litellm:${LITELLM_TAG:-main-stable}
+    build:
+      context: .
+      dockerfile: Dockerfile.litellm
+    image: local/litellm:v1.108.6-mcp
+    # image: ghcr.io/berriai/litellm:${LITELLM_TAG:-main-stable}
     restart: unless-stopped
     command: ["--config", "/app/config.yaml", "--port", "4000"]
     ports:

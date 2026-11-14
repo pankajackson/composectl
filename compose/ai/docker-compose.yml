@@ -3,14 +3,10 @@ name: local-ai
 # ---------------------------------------------------------------------------
 # Modules (Compose profiles):
 #   (no profile)  core: postgres, redis, ollama, litellm, open-webui  -> always on
-#   comfy         ComfyUI (image/video generation)                    -> on demand
-#   tabby         TabbyML (code completion + chat for your IDE)       -> on demand
 #   voice         faster-whisper (STT) + Piper (TTS), Wyoming protocol -> on demand
 #
 #   docker compose up -d                          # core only
-#   docker compose --profile comfy up -d          # core + ComfyUI
-#   docker compose --profile comfy --profile tabby --profile voice up -d
-#   docker compose stop comfyui                   # turn ComfyUI off, frees VRAM
+#   docker compose --profile voice up -d          # core + Voice
 #
 # Or set COMPOSE_PROFILES=voice,tabby in .env to enable modules by default.
 # ---------------------------------------------------------------------------
@@ -65,6 +61,7 @@ services:
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
       OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-3m} # short, so VRAM is freed for ComfyUI
+      OLLAMA_CONTEXT_LENGTH: ${OLLAMA_CONTEXT_LENGTH:-16384}
       OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
       OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-1}
       OLLAMA_FLASH_ATTENTION: 1
@@ -90,14 +87,16 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?Set GEMINI_API_KEY in .env}
+      GROQ_API_KEY: ${GROQ_API_KEY:?Set GROQ_API_KEY in .env}
       CEREBRAS_API_KEY: ${CEREBRAS_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      STORE_MODEL_IN_DB: ${STORE_MODEL_IN_DB:?Set STORE_MODEL_IN_DB in.env}
+      LITELLM_ENABLE_MCP_STDIO: ${LITELLM_ENABLE_MCP_STDIO:?Set LITELLM_ENABLE_MCP_STDIO in.env}
     volumes:
       - ./litellm/config.yaml:/app/config.yaml:ro
-      - ./litellm/greeting_hook.py:/app/greeting_hook.py:ro
+      - /opt/projects:/opt/projects
     depends_on:
       postgres:
         condition: service_healthy
@@ -134,40 +133,6 @@ services:
       - ${DATA_DIR:-./data}/open-webui:/app/backend/data
     depends_on:
       litellm:
-        condition: service_healthy
-
-  # ------------------------------ COMFY -----------------------------------
-  comfyui:
-    profiles: ["comfy"]
-    image: yanwk/comfyui-boot:${COMFY_TAG:-cu128-slim} # Blackwell needs CUDA 12.8+ builds
-    restart: unless-stopped
-    <<: *gpu
-    ports:
-      - "8188:8188"
-    shm_size: 4gb
-    environment:
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
-      CLI_ARGS: ${COMFY_ARGS:-} # e.g. --lowvram if you hit out-of-memory errors
-    volumes:
-      - ${DATA_DIR:-./data}/comfyui:/root
-
-  # ------------------------------ TABBY -----------------------------------
-  tabby:
-    profiles: ["tabby"]
-    image: tabbyml/tabby:${TABBY_TAG:-latest}
-    restart: unless-stopped
-    command: ["serve"] # models come from tabby/config.toml (served by Ollama)
-    ports:
-      - "8081:8080"
-    environment:
-      TABBY_ROOT: /data
-      TABBY_DISABLE_USAGE_COLLECTION: 1
-    volumes:
-      - ${DATA_DIR:-./data}/tabby:/data
-      - ./tabby/config.toml:/data/config.toml:ro
-    depends_on:
-      ollama:
         condition: service_healthy
 
   # ------------------------------ VOICE -----------------------------------

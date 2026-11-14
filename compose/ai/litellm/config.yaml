@@ -14,6 +14,8 @@ model_list:
       mode: chat
       input_cost_per_token: 0
       output_cost_per_token: 0
+      cache_creation_input_token_cost: 0
+      cache_read_input_token_cost: 0
       # supports_function_calling: true
 
   - model_name: medium-qwen3-14b-local
@@ -30,6 +32,8 @@ model_list:
       mode: chat
       input_cost_per_token: 0
       output_cost_per_token: 0
+      cache_creation_input_token_cost: 0
+      cache_read_input_token_cost: 0
 
   # Autocomplete (FIM). Uses the /api/generate endpoint, hence "ollama/" and not "ollama_chat/".
   # Optional: Continue can call Ollama directly instead (see below).
@@ -51,6 +55,8 @@ model_list:
       mode: completion
       input_cost_per_token: 0
       output_cost_per_token: 0
+      cache_creation_input_token_cost: 0
+      cache_read_input_token_cost: 0
 
   # ---- Claude Code (Local Agent) ----
   - model_name: medium-coding-gpt-oss-20b-local
@@ -68,6 +74,8 @@ model_list:
       mode: chat
       input_cost_per_token: 0
       output_cost_per_token: 0
+      cache_creation_input_token_cost: 0
+      cache_read_input_token_cost: 0
 
   # ---- Cloud ----
   - model_name: medium-gemini-2.5-flash-cloud
@@ -142,3 +150,39 @@ litellm_settings:
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
   database_url: os.environ/DATABASE_URL
+  store_model_in_db: true
+  supported_db_objects:
+    - mcp
+  # dangerously_allow_mock_testing_request_params: true # Enable Routing/fallbacks Test from UI 
+
+
+# ----- MCP Servers ----- 
+mcp_servers:
+  # Local filesystem
+  filesystem:
+    transport: stdio
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-filesystem"
+      - /opt/projects
+
+  # GitLab (self-hosted or GitLab.com)
+  gitlab:
+    url: "https://gitlab.com/api/v4/mcp"
+
+  # Fetch web pages
+  fetch:
+    transport: stdio
+    command: uvx
+    args:
+      - mcp-server-fetch
+
+  # Git repository operations
+  git:
+    transport: stdio
+    command: uvx
+    args:
+      - mcp-server-git
+      - --repository
+      - /opt/projects
